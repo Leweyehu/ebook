@@ -19,32 +19,36 @@ class ContactController extends Controller
     /**
      * Store contact message from public
      */
-    /**
- * Store contact message from public
- */
-public function store(Request $request)
-{
-    $validated = $request->validate([
-        'name' => 'required|string|max:255',
-        'email' => 'required|email|max:255',
-        'subject' => 'required|string|max:255',
-        'message' => 'required|string',
-    ]);
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'subject' => 'required|string|max:255', // ADDED BACK - required validation
+            'message' => 'required|string',
+        ]);
 
-    // Add only status for now, remove ip_address and user_agent
-    $validated['status'] = 'unread';
+        // Add status field
+        $validated['status'] = 'unread';
 
-    Contact::create($validated);
+        // Create contact WITH subject
+        Contact::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'subject' => $validated['subject'], // ADDED BACK
+            'message' => $validated['message'],
+            'status' => $validated['status']
+        ]);
 
-    return redirect()->route('contact')->with('success', 'Your message has been sent successfully! We will get back to you soon.');
-}
+        return redirect()->route('contact')->with('success', 'Your message has been sent successfully! We will get back to you soon.');
+    }
 
     /**
      * Admin: View all messages
      */
     public function admin()
     {
-        $contacts = Contact::orderBy('created_at', 'desc')->get();
+        $contacts = Contact::orderBy('created_at', 'desc')->paginate(20);
         $stats = [
             'total' => Contact::count(),
             'unread' => Contact::where('status', 'unread')->count(),

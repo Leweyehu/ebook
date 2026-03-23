@@ -28,11 +28,11 @@ class StaffController extends Controller
     /**
      * Display admin management page
      */
-   public function admin()
-{
-    $staff = Staff::orderBy('order')->orderBy('name')->get();
-    return view('staff.admin', compact('staff'));
-}
+    public function admin()
+    {
+        $staff = Staff::orderBy('order')->orderBy('name')->get();
+        return view('staff.admin', compact('staff'));
+    }
 
     /**
      * Show form for creating new staff
@@ -46,34 +46,33 @@ class StaffController extends Controller
      * Store new staff member
      */
     public function store(Request $request)
-{
-    $request->validate([
-        'name' => 'required|string|max:255',
-        'position' => 'required|string|max:255',
-        'qualification' => 'required|string|max:255',
-        'email' => 'required|email|unique:staff',
-        'phone' => 'nullable|string|max:20',
-        'staff_type' => 'required|in:academic,administrative,technical',
-        'bio' => 'nullable|string',
-        'profile_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-        'order' => 'nullable|integer'
-    ]);
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'position' => 'required|string|max:255',
+            'qualification' => 'required|string|max:255',
+            'email' => 'required|email|unique:staff',
+            'phone' => 'nullable|string|max:20',
+            'staff_type' => 'required|in:academic,administrative,technical',
+            'bio' => 'nullable|string',
+            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'order' => 'nullable|integer'
+        ]);
 
-    $data = $request->except('profile_image');
-    
-    // Handle image upload
-    if ($request->hasFile('profile_image')) {
-        $image = $request->file('profile_image');
-        $imageName = time() . '_' . $image->getClientOriginalName();
-        $image->move(public_path('images/staff'), $imageName);
-        $data['profile_image'] = 'images/staff/' . $imageName;
+        $data = $request->all();
+        
+        // Handle image upload
+        if ($request->hasFile('profile_image')) {
+            $image = $request->file('profile_image');
+            $imageName = time() . '_' . $image->getClientOriginalName();
+            $image->move(public_path('images/staff'), $imageName);
+            $data['profile_image'] = 'images/staff/' . $imageName;
+        }
+
+        Staff::create($data);
+
+        return redirect()->route('staff.admin')->with('success', 'Staff member added successfully!');
     }
-
-    Staff::create($data);
-
-    // FIXED: Changed from 'staff.admin' to 'admin.staff.index'
-    return redirect()->route('admin.staff.index')->with('success', 'Staff member added successfully!');
-}
 
     /**
      * Show form for editing staff
@@ -101,7 +100,7 @@ class StaffController extends Controller
             'is_active' => 'sometimes|boolean'
         ]);
 
-        $data = $request->except('profile_image');
+        $data = $request->all();
         
         // Handle image upload
         if ($request->hasFile('profile_image')) {

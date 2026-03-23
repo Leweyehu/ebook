@@ -11,23 +11,35 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('messages')) {
-            Schema::create('messages', function (Blueprint $table) {
-                $table->id();
-                $table->unsignedBigInteger('conversation_id');
-                $table->unsignedBigInteger('user_id');
-                $table->text('message');
-                $table->string('type')->default('text');
-                $table->string('attachment')->nullable();
-                $table->boolean('is_read')->default(false);
-                $table->timestamp('read_at')->nullable();
-                $table->timestamps();
-                
-                $table->foreign('conversation_id')->references('id')->on('conversations')->onDelete('cascade');
-                $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-                $table->index(['conversation_id', 'created_at']);
-            });
-        }
+        Schema::table('messages', function (Blueprint $table) {
+            // Add direct messaging columns if they don't exist
+            if (!Schema::hasColumn('messages', 'sender_id')) {
+                $table->foreignId('sender_id')->after('id')->constrained('users')->onDelete('cascade');
+            }
+            
+            if (!Schema::hasColumn('messages', 'receiver_id')) {
+                $table->foreignId('receiver_id')->after('sender_id')->constrained('users')->onDelete('cascade');
+            }
+            
+            // Make conversation_id nullable
+            $table->unsignedBigInteger('conversation_id')->nullable()->change();
+            
+            // Keep user_id but maybe rename for clarity? Or keep as is
+            // $table->renameColumn('user_id', 'sender_id'); // Option to rename
+            
+            // Add soft delete columns if missing
+            if (!Schema::hasColumn('messages', 'is_deleted_by_sender')) {
+                $table->boolean('is_deleted_by_sender')->default(false)->after('read_at');
+            }
+            
+            if (!Schema::hasColumn('messages', 'is_deleted_by_receiver')) {
+                $table->boolean('is_deleted_by_receiver')->default(false)->after('is_deleted_by_sender');
+            }
+            
+            // Add indexes
+            $table->index(['sender_id', 'receiver_id']);
+            $table->index(['receiver_id', 'is_read']);
+        });
     }
 
     /**
@@ -35,6 +47,13 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('messages');
+        Schema::table('messages', function (Blueprint $table) {
+            $table->dropForeign(['sender_id']);
+            $table->dropForeign(['receiver_id']);
+            $table->dropColumn(['sender_id', 'receiver_id', 'is_deleted_by_sender', 'is_deleted_by_receiver']);
+            
+            // Make conversation_id required again
+            $table->unsignedBigInteger('conversation_id')->nullable(false)->change();
+        });
     }
 };

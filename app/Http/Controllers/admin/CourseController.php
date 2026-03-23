@@ -2,347 +2,246 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
 use App\Models\Course;
-use App\Models\Staff;
-use App\Models\Student;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\CoursesImport;
 
 class CourseController extends Controller
 {
     /**
-     * Display a listing of courses
+     * Display course listing
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Get courses with instructors and student counts
-        $courses = Course::with(['instructors'])
-                        ->withCount('students')
-                        ->orderBy('year')
-                        ->orderBy('semester')
-                        ->orderBy('course_code')
-                        ->paginate(15);
+        $query = Course::query();
         
-        // Calculate stats using is_active
-        $totalCourses = Course::count();
-        $activeCourses = Course::where('is_active', true)->count();
-        $inactiveCourses = Course::where('is_active', false)->count();
+        if ($request->filled('year')) {
+            $query->where('year_level', $request->year);
+        }
+        if ($request->filled('semester')) {
+            $query->where('semester', $request->semester);
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('search')) {
+            $query->where('course_code', 'LIKE', "%{$request->search}%")
+                  ->orWhere('course_name', 'LIKE', "%{$request->search}%");
+        }
         
-        // Calculate courses by year
-        $byYear = [
-            'year1' => Course::where('year', 1)->count(),
-            'year2' => Course::where('year', 2)->count(),
-            'year3' => Course::where('year', 3)->count(),
-            'year4' => Course::where('year', 4)->count(),
-        ];
+        $courses = $query->orderBy('year_level')->orderBy('semester')->orderBy('order')->paginate(20);
         
         $stats = [
-            'total' => $totalCourses,
-            'active' => $activeCourses,
-            'inactive' => $inactiveCourses,
-            'by_year' => $byYear,
+            'total' => Course::count(),
+            'active' => Course::where('status', 'active')->count(),
+            'elective' => Course::where('is_elective', true)->count(),
+            'years' => Course::distinct('year_level')->count('year_level')
         ];
         
-        return view('admin.courses.index', compact('courses', 'stats'));
+        $years = [1, 2, 3, 4];
+        $semesters = [1, 2];
+        $statuses = ['active', 'inactive', 'archived'];
+        
+        return view('admin.courses.index', compact('courses', 'stats', 'years', 'semesters', 'statuses'));
     }
 
     /**
-     * Show form to create a new course
+     * Show course creation form
      */
     public function create()
     {
-        $staff = Staff::where('is_active', true)->orderBy('name')->get();
-        return view('admin.courses.create', compact('staff'));
+        return view('admin.courses.create');
     }
 
     /**
-     * Store a newly created course
+     * Store new course
      */
     public function store(Request $request)
     {
         $validated = $request->validate([
             'course_code' => 'required|string|max:20|unique:courses',
             'course_name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'credit_hours' => 'required|integer|min:1|max:10',
-            'ects' => 'nullable|integer|min:1|max:30',
-            'semester' => 'required|string|max:50',
-            'year' => 'required|integer|in:1,2,3,4',
-            'is_active' => 'sometimes|boolean',
-            'instructors' => 'required|array|min:1',
-            'instructors.*' => 'exists:staff,id',
-            'primary_instructor' => 'required|exists:staff,id'
+            'credit_hours' => 'required|integer|min:1|max:6',
+            'year_level' => 'required|integer|min:1|max:4',
+            'semester' => 'required|in:1,2',
+            'description' => 'required|string',
+            'objectives' => 'nullable|string',
+            'syllabus' => 'nullable|string',
+            'featured_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'instructor' => 'nullable|string|max:255',
+            'prerequisites' => 'nullable|string|max:255',
+            'capacity' => 'nullable|integer|min:10|max:200',
+            'status' => 'required|in:active,inactive,archived',
+            'is_elective' => 'boolean',
+            'order' => 'nullable|integer'
         ]);
 
-        // Create the course
-        $course = Course::create([
-            'course_code' => $validated['course_code'],
-            'course_name' => $validated['course_name'],
-            'description' => $validated['description'] ?? null,
-            'credit_hours' => $validated['credit_hours'],
-            'ects' => $validated['ects'] ?? null,
-            'semester' => $validated['semester'],
-            'year' => $validated['year'],
-            'is_active' => $request->has('is_active') ? true : true,
-            'created_by' => Auth::id()
-        ]);
-
-        // Attach instructors with roles
-        $instructorData = [];
-        foreach ($validated['instructors'] as $instructorId) {
-            $role = ($instructorId == $validated['primary_instructor']) ? 'primary' : 'assistant';
-            $instructorData[$instructorId] = ['role' => $role];
-        }
+        $data = $request->except('featured_image');
         
-        $course->instructors()->attach($instructorData);
+        // Handle image upload
+        if ($request->hasFile('featured_image')) {
+            $image = $request->file('featured_image');
+            $imageName = 'course_' . time() . '_' . $image->getClientOriginalName();
+            $image->storeAs('public/courses', $imageName);
+            $data['featured_image'] = 'courses/' . $imageName;
+        }
+
+        $data['is_elective'] = $request->has('is_elective');
+        $data['order'] = $request->order ?? 0;
+
+        Course::create($data);
 
         return redirect()->route('admin.courses.index')
-            ->with('success', "✅ Course '{$course->course_name}' created successfully!");
+            ->with('success', 'Course created successfully!');
     }
 
     /**
-     * Display the specified course
+     * Show course details
      */
     public function show(Course $course)
     {
-        $course->load(['instructors', 'students']);
-        
-        // Get statistics for this course
-        $stats = [
-            'total_students' => $course->students()->count(),
-            'total_instructors' => $course->instructors()->count(),
-            'enrollment_rate' => $course->students()->count() > 0 ? 100 : 0,
-        ];
-        
-        return view('admin.courses.show', compact('course', 'stats'));
+        return view('admin.courses.show', compact('course'));
     }
 
     /**
-     * Show form to edit a course
+     * Show edit form
      */
     public function edit(Course $course)
     {
-        $staff = Staff::where('is_active', true)->orderBy('name')->get();
-        $assignedInstructors = $course->instructors->pluck('id')->toArray();
-        $primaryInstructor = $course->instructors()
-            ->wherePivot('role', 'primary')
-            ->first();
-        
-        return view('admin.courses.edit', compact('course', 'staff', 'assignedInstructors', 'primaryInstructor'));
+        return view('admin.courses.edit', compact('course'));
     }
 
     /**
-     * Update the specified course
+     * Update course
      */
     public function update(Request $request, Course $course)
     {
         $validated = $request->validate([
             'course_code' => 'required|string|max:20|unique:courses,course_code,' . $course->id,
             'course_name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'credit_hours' => 'required|integer|min:1|max:10',
-            'ects' => 'nullable|integer|min:1|max:30',
-            'semester' => 'required|string|max:50',
-            'year' => 'required|integer|in:1,2,3,4',
-            'is_active' => 'sometimes|boolean',
-            'instructors' => 'required|array|min:1',
-            'instructors.*' => 'exists:staff,id',
-            'primary_instructor' => 'required|exists:staff,id'
+            'credit_hours' => 'required|integer|min:1|max:6',
+            'year_level' => 'required|integer|min:1|max:4',
+            'semester' => 'required|in:1,2',
+            'description' => 'required|string',
+            'objectives' => 'nullable|string',
+            'syllabus' => 'nullable|string',
+            'featured_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'instructor' => 'nullable|string|max:255',
+            'prerequisites' => 'nullable|string|max:255',
+            'capacity' => 'nullable|integer|min:10|max:200',
+            'status' => 'required|in:active,inactive,archived',
+            'is_elective' => 'boolean',
+            'order' => 'nullable|integer'
         ]);
 
-        // Update course details
-        $course->update([
-            'course_code' => $validated['course_code'],
-            'course_name' => $validated['course_name'],
-            'description' => $validated['description'],
-            'credit_hours' => $validated['credit_hours'],
-            'ects' => $validated['ects'],
-            'semester' => $validated['semester'],
-            'year' => $validated['year'],
-            'is_active' => $request->has('is_active') ? true : false,
-        ]);
-
-        // Sync instructors with roles
-        $instructorData = [];
-        foreach ($validated['instructors'] as $instructorId) {
-            $role = ($instructorId == $validated['primary_instructor']) ? 'primary' : 'assistant';
-            $instructorData[$instructorId] = ['role' => $role];
-        }
+        $data = $request->except('featured_image');
         
-        $course->instructors()->sync($instructorData);
+        // Handle image upload
+        if ($request->hasFile('featured_image')) {
+            // Delete old image
+            if ($course->featured_image && Storage::disk('public')->exists($course->featured_image)) {
+                Storage::disk('public')->delete($course->featured_image);
+            }
+            
+            $image = $request->file('featured_image');
+            $imageName = 'course_' . time() . '_' . $image->getClientOriginalName();
+            $image->storeAs('public/courses', $imageName);
+            $data['featured_image'] = 'courses/' . $imageName;
+        }
+
+        $data['is_elective'] = $request->has('is_elective');
+
+        $course->update($data);
 
         return redirect()->route('admin.courses.index')
-            ->with('success', "✅ Course '{$course->course_name}' updated successfully!");
+            ->with('success', 'Course updated successfully!');
     }
 
     /**
-     * Remove the specified course
+     * Delete course
      */
     public function destroy(Course $course)
     {
-        $courseName = $course->course_name;
+        // Delete image if exists
+        if ($course->featured_image && Storage::disk('public')->exists($course->featured_image)) {
+            Storage::disk('public')->delete($course->featured_image);
+        }
+        
         $course->delete();
-
+        
         return redirect()->route('admin.courses.index')
-            ->with('success', "✅ Course '{$courseName}' deleted successfully!");
+            ->with('success', 'Course deleted successfully!');
     }
 
     /**
-     * Toggle course active status
+     * Toggle course status
      */
     public function toggleStatus(Course $course)
     {
-        $course->update([
-            'is_active' => !$course->is_active
-        ]);
-
-        $status = $course->is_active ? 'activated' : 'deactivated';
-        return redirect()->route('admin.courses.index')
-            ->with('success', "✅ Course '{$course->course_name}' {$status} successfully!");
+        $newStatus = $course->status === 'active' ? 'inactive' : 'active';
+        $course->update(['status' => $newStatus]);
+        
+        return redirect()->back()->with('success', 'Course status updated!');
     }
 
     /**
-     * Show form to assign instructors and students to course
+     * Bulk upload courses via Excel
      */
-    public function assignForm(Course $course)
+    public function uploadForm()
     {
-        $staff = Staff::where('is_active', true)->orderBy('name')->get();
-        $assignedInstructors = $course->instructors->pluck('id')->toArray();
-        
-        // Get students by year
-        $studentsByYear = [
-            1 => Student::where('year', 1)->orderBy('name')->get(),
-            2 => Student::where('year', 2)->orderBy('name')->get(),
-            3 => Student::where('year', 3)->orderBy('name')->get(),
-            4 => Student::where('year', 4)->orderBy('name')->get(),
-        ];
-        
-        $enrolledStudents = $course->students()->pluck('students.id')->toArray();
-        
-        return view('admin.courses.assign', compact('course', 'staff', 'assignedInstructors', 'studentsByYear', 'enrolledStudents'));
+        return view('admin.courses.upload');
     }
 
     /**
-     * Update instructor and student assignments
+     * Process bulk upload
      */
-    public function assign(Request $request, Course $course)
+    public function upload(Request $request)
     {
         $request->validate([
-            'instructors' => 'required|array|min:1',
-            'instructors.*' => 'exists:staff,id',
-            'primary_instructor' => 'required|exists:staff,id',
-            'student_years' => 'nullable|array',
-            'student_years.*' => 'in:1,2,3,4',
-            'academic_year' => 'required|string|max:20',
+            'file' => 'required|mimes:xlsx,xls,csv|max:5120'
         ]);
 
-        DB::transaction(function () use ($request, $course) {
-            // 1. Assign instructors
-            $instructorData = [];
-            foreach ($request->instructors as $instructorId) {
-                $role = ($instructorId == $request->primary_instructor) ? 'primary' : 'assistant';
-                $instructorData[$instructorId] = [
-                    'role' => $role,
-                    'academic_year' => $request->academic_year
-                ];
+        try {
+            $import = new CoursesImport();
+            Excel::import($import, $request->file('file'));
+            
+            $successCount = $import->getSuccessCount();
+            $failedCount = $import->getFailedCount();
+            
+            $message = "✅ {$successCount} courses imported successfully!";
+            if ($failedCount > 0) {
+                $message .= " ⚠️ {$failedCount} rows failed.";
             }
-            $course->instructors()->sync($instructorData);
-
-            // 2. Enroll students from selected years
-            if ($request->has('student_years')) {
-                $studentIds = [];
-                foreach ($request->student_years as $year) {
-                    $students = Student::where('year', $year)->get();
-                    foreach ($students as $student) {
-                        if (!$course->students()->where('student_id', $student->id)->exists()) {
-                            $studentIds[$student->id] = [
-                                'academic_year' => $request->academic_year,
-                                'status' => 'enrolled',
-                                'enrollment_date' => now()
-                            ];
-                        }
-                    }
-                }
-                
-                if (!empty($studentIds)) {
-                    $course->students()->syncWithoutDetaching($studentIds);
-                }
-            }
-        });
-
-        return redirect()->route('admin.courses.index')
-            ->with('success', "✅ Course '{$course->course_name}' assigned successfully!");
-    }
-
-    /**
-     * Show form to assign instructors (legacy method - kept for backward compatibility)
-     */
-    public function assignInstructors(Course $course)
-    {
-        $staff = Staff::where('is_active', true)->orderBy('name')->get();
-        $assignedInstructors = $course->instructors->pluck('id')->toArray();
-        
-        return view('admin.courses.assign-instructors', compact('course', 'staff', 'assignedInstructors'));
-    }
-
-    /**
-     * Update instructor assignments (legacy method - kept for backward compatibility)
-     */
-    public function updateInstructors(Request $request, Course $course)
-    {
-        $request->validate([
-            'instructors' => 'required|array|min:1',
-            'instructors.*' => 'exists:staff,id',
-            'primary_instructor' => 'required|exists:staff,id'
-        ]);
-
-        $instructorData = [];
-        foreach ($request->instructors as $instructorId) {
-            $role = ($instructorId == $request->primary_instructor) ? 'primary' : 'assistant';
-            $instructorData[$instructorId] = ['role' => $role];
+            
+            return redirect()->route('admin.courses.index')->with('success', $message);
+            
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error uploading file: ' . $e->getMessage());
         }
-        
-        $course->instructors()->sync($instructorData);
-
-        return redirect()->route('admin.courses.show', $course)
-            ->with('success', "✅ Instructors assigned successfully!");
     }
 
     /**
-     * Get courses by year (API endpoint)
+     * Download template
      */
-    public function getByYear($year)
+    public function downloadTemplate()
     {
-        $courses = Course::where('year', $year)
-                        ->where('is_active', true)
-                        ->orderBy('course_code')
-                        ->get(['id', 'course_code', 'course_name', 'credit_hours']);
+        $headers = ['course_code', 'course_name', 'credit_hours', 'year_level', 'semester', 'description', 'instructor', 'capacity'];
         
-        return response()->json($courses);
-    }
-
-    /**
-     * Get student enrollment statistics
-     */
-    public function enrollmentStats(Course $course)
-    {
-        $stats = [
-            'total' => $course->students()->count(),
-            'by_year' => [
-                'year1' => $course->students()->where('year', 1)->count(),
-                'year2' => $course->students()->where('year', 2)->count(),
-                'year3' => $course->students()->where('year', 3)->count(),
-                'year4' => $course->students()->where('year', 4)->count(),
-            ],
-            'by_status' => [
-                'enrolled' => $course->students()->wherePivot('status', 'enrolled')->count(),
-                'completed' => $course->students()->wherePivot('status', 'completed')->count(),
-                'dropped' => $course->students()->wherePivot('status', 'dropped')->count(),
-            ]
-        ];
+        $filename = "course_template.csv";
         
-        return response()->json($stats);
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        
+        $handle = fopen('php://output', 'w');
+        fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
+        fputcsv($handle, $headers);
+        fputcsv($handle, ['CS101', 'Introduction to Programming', '3', '1', '1', 'Basic programming concepts using Python', 'Dr. Abebe Kebede', '60']);
+        fputcsv($handle, ['CS201', 'Data Structures', '3', '2', '1', 'Advanced data structures and algorithms', 'Dr. Tigist Mulugeta', '50']);
+        fclose($handle);
+        
+        exit;
     }
 }

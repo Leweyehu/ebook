@@ -264,19 +264,19 @@
                     <span>Manage Students</span>
                 </a>
                 
-                <!-- ===== Course Management Link ===== -->
-                <a href="{{ route('admin.courses.index') }}" class="admin-nav-item {{ request()->routeIs('admin.courses.*') ? 'active' : '' }}">
+                <!-- Course Management Link -->
+                <!-- <a href="{{ route('admin.courses.index') }}" class="admin-nav-item {{ request()->routeIs('admin.courses.*') ? 'active' : '' }}">
                     <i class="fas fa-book"></i>
                     <span>Course Management</span>
-                </a>
+                </a> -->
                 
-                <!-- ===== NEW: Course Offerings Link ===== -->
-                <a href="{{ route('admin.courses.offerings') }}" class="admin-nav-item {{ request()->routeIs('admin.courses.offerings') ? 'active' : '' }}">
+                <!-- Course Offerings Link -->
+                <!-- <a href="{{ route('admin.courses.offerings') }}" class="admin-nav-item {{ request()->routeIs('admin.courses.offerings') ? 'active' : '' }}">
                     <i class="fas fa-graduation-cap"></i>
                     <span>Course Offerings</span>
                 </a>
-                
-                <!-- ===== User Management Link ===== -->
+                 -->
+                <!-- User Management Link -->
                 <a href="{{ route('admin.users.index') }}" class="admin-nav-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
                     <i class="fas fa-users-cog"></i>
                     <span>User Management</span>
@@ -291,6 +291,20 @@
                     <i class="fas fa-envelope"></i>
                     <span>Contact Messages</span>
                 </a>
+                
+                <!-- Complaints Link - FIXED with proper styling -->
+                <a href="{{ route('admin.complaints.index') }}" class="admin-nav-item {{ request()->routeIs('admin.complaints.*') ? 'active' : '' }}">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Complaints</span>
+                </a>
+                <a href="{{ route('admin.alumni.index') }}" class="admin-nav-item {{ request()->routeIs('admin.alumni.*') ? 'active' : '' }}">
+    <i class="fas fa-graduation-cap"></i>
+    <span>Alumni Management</span>
+</a>
+<a href="{{ route('admin.courses.index') }}" class="admin-nav-item {{ request()->routeIs('admin.courses.*') ? 'active' : '' }}">
+    <i class="fas fa-book"></i>
+    <span>Course Management</span>
+</a>
                 
                 <div class="admin-nav-divider"></div>
                 

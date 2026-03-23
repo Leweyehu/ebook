@@ -57,11 +57,9 @@
             </div>
 
             <div style="margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
-                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                <!-- <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
                     <input type="checkbox" name="remember" style="cursor: pointer;"> 
-                    <span style="color: #6c757d;">Remember me</span>
-                </label>
-                <a href="{{ route('password.request') }}" style="color: #ffc107; text-decoration: none; font-weight: 500;">Forgot Password?</a>
+                </label> -->
             </div>
 
             <button type="submit" 
@@ -73,9 +71,6 @@
         </form>
 
         <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e9ecef; text-align: center;">
-            <p style="color: #6c757d; margin-top: 0.5rem; font-size: 0.9rem;">
-                <i class="fas fa-user-graduate"></i> Student access only
-            </p>
         </div>
     </div>
 </div>

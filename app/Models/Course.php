@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Str;
 
 class Course extends Model
 {
@@ -12,89 +13,79 @@ class Course extends Model
     protected $fillable = [
         'course_code',
         'course_name',
-        'description',
+        'slug',
         'credit_hours',
-        'ects',
+        'year_level',
         'semester',
-        'year',
+        'description',
+        'objectives',
+        'syllabus',
+        'featured_image',
+        'instructor',
+        'prerequisites',
+        'capacity',
         'status',
-        'created_by'
+        'is_elective',
+        'order'
     ];
 
     protected $casts = [
         'credit_hours' => 'integer',
-        'ects' => 'integer',
-        'year' => 'integer'
+        'year_level' => 'integer',
+        'capacity' => 'integer',
+        'is_elective' => 'boolean',
+        'order' => 'integer'
     ];
 
-    /**
-     * Get the staff members teaching this course
-     */
-    public function instructors()
+    // Auto-generate slug
+    protected static function boot()
     {
-        return $this->belongsToMany(Staff::class, 'course_staff', 'course_id', 'staff_id')
-                    ->withPivot('role', 'academic_year')
-                    ->withTimestamps();
+        parent::boot();
+        
+        static::creating(function ($course) {
+            $course->slug = Str::slug($course->course_code . '-' . $course->course_name);
+        });
+        
+        static::updating(function ($course) {
+            if ($course->isDirty('course_code') || $course->isDirty('course_name')) {
+                $course->slug = Str::slug($course->course_code . '-' . $course->course_name);
+            }
+        });
     }
 
-    /**
-     * Get the primary instructor for this course
-     */
-    public function primaryInstructor()
-    {
-        return $this->belongsToMany(Staff::class, 'course_staff', 'course_id', 'staff_id')
-                    ->wherePivot('role', 'primary')
-                    ->withPivot('role', 'academic_year')
-                    ->withTimestamps();
-    }
-
-    /**
-     * Get the students enrolled in this course
-     */
-    public function students()
-    {
-        return $this->belongsToMany(Student::class, 'course_student', 'course_id', 'student_id')
-                    ->withPivot('academic_year', 'status', 'enrollment_date')
-                    ->withTimestamps();
-    }
-
-    /**
-     * Get students by year
-     */
-    public function studentsByYear($year)
-    {
-        return $this->students()->where('year', $year);
-    }
-
-    /**
-     * Get the user who created this course
-     */
-    public function creator()
-    {
-        return $this->belongsTo(User::class, 'created_by');
-    }
-
-    /**
-     * Scope a query to only include active courses
-     */
+    // Scopes
     public function scopeActive($query)
     {
         return $query->where('status', 'active');
     }
 
-    /**
-     * Scope a query to filter by year
-     */
-    public function scopeYear($query, $year)
+    public function scopeByYear($query, $year)
     {
-        return $query->where('year', $year);
+        return $query->where('year_level', $year);
     }
 
-    /**
-     * Get the full course name with code
-     */
-    public function getFullNameAttribute()
+    public function scopeBySemester($query, $semester)
     {
-        return $this->course_code . ' - ' . $this->course_name;
+        return $query->where('semester', $semester);
+    }
+
+    // Accessors
+    public function getImageUrlAttribute()
+    {
+        return $this->featured_image 
+            ? asset('storage/' . $this->featured_image) 
+            : asset('images/course-placeholder.jpg');
+    }
+
+    public function getStatusBadgeAttribute()
+    {
+        $badges = [
+            'active' => ['bg' => '#28a745', 'text' => 'Active'],
+            'inactive' => ['bg' => '#dc3545', 'text' => 'Inactive'],
+            'archived' => ['bg' => '#6c757d', 'text' => 'Archived']
+        ];
+        
+        $badge = $badges[$this->status] ?? $badges['active'];
+        return "<span style='background: {$badge['bg']}; color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem;'>{$badge['text']}</span>";
     }
 }

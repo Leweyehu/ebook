@@ -159,7 +159,9 @@
             position: relative;
         }
         
-        .nav-menu a, .nav-menu button {
+        .nav-menu a, 
+        .nav-menu button,
+        .nav-menu .dropdown-toggle {
             color: white;
             text-decoration: none;
             font-weight: 500;
@@ -179,7 +181,8 @@
         
         .nav-menu a:hover,
         .nav-menu a.active,
-        .nav-menu button:hover {
+        .nav-menu button:hover,
+        .nav-menu .dropdown-toggle:hover {
             color: #ffc107;
         }
         
@@ -192,6 +195,82 @@
             height: 3px;
             background: #ffc107;
             border-radius: 3px 3px 0 0;
+        }
+        
+        /* Dropdown Styles */
+        .dropdown {
+            position: relative;
+        }
+        
+        .dropdown-toggle {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .dropdown-toggle i {
+            font-size: 0.8rem;
+            transition: transform 0.3s ease;
+        }
+        
+        .dropdown:hover .dropdown-toggle i,
+        .dropdown.active .dropdown-toggle i {
+            transform: rotate(180deg);
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            min-width: 220px;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            padding: 0.5rem 0;
+            margin-top: 0.5rem;
+        }
+        
+        .dropdown:hover .dropdown-menu,
+        .dropdown.active .dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .dropdown-menu li {
+            width: 100%;
+        }
+        
+        .dropdown-menu a {
+            color: #333;
+            padding: 0.6rem 1.2rem;
+            display: block;
+            white-space: nowrap;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        
+        .dropdown-menu a:hover {
+            background: #f8f9fa;
+            color: #ffc107;
+            padding-left: 1.5rem;
+        }
+        
+        .dropdown-menu a i {
+            width: 20px;
+            margin-right: 8px;
+            color: #ffc107;
+        }
+        
+        .dropdown-menu .divider {
+            height: 1px;
+            background: #e9ecef;
+            margin: 0.5rem 0;
         }
         
         /* Special Buttons */
@@ -544,7 +623,9 @@
                 gap: 1.2rem;
             }
             
-            .nav-menu a, .nav-menu button {
+            .nav-menu a, 
+            .nav-menu button,
+            .nav-menu .dropdown-toggle {
                 font-size: 0.9rem;
             }
         }
@@ -558,7 +639,9 @@
                 gap: 1rem;
             }
             
-            .nav-menu a, .nav-menu button {
+            .nav-menu a, 
+            .nav-menu button,
+            .nav-menu .dropdown-toggle {
                 font-size: 0.85rem;
             }
             
@@ -642,7 +725,9 @@
                 width: 100%;
             }
             
-            .nav-menu a, .nav-menu button {
+            .nav-menu a, 
+            .nav-menu button,
+            .nav-menu .dropdown-toggle {
                 font-size: 1rem;
                 padding: 0.8rem 1rem;
                 display: block;
@@ -653,12 +738,54 @@
                 word-wrap: break-word;
             }
             
-            .nav-menu a:hover {
+            .nav-menu a:hover,
+            .nav-menu .dropdown-toggle:hover {
                 background: rgba(255,255,255,0.1);
             }
             
             .nav-menu a.active::after {
                 display: none;
+            }
+            
+            /* Dropdown Mobile Styles */
+            .dropdown {
+                width: 100%;
+            }
+            
+            .dropdown-toggle {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .dropdown-menu {
+                position: static;
+                background: rgba(255,255,255,0.1);
+                box-shadow: none;
+                opacity: 1;
+                visibility: visible;
+                transform: none;
+                display: none;
+                padding-left: 1rem;
+                margin-top: 0;
+            }
+            
+            .dropdown.active .dropdown-menu {
+                display: block;
+            }
+            
+            .dropdown-menu a {
+                color: white;
+                padding: 0.6rem 1rem;
+            }
+            
+            .dropdown-menu a:hover {
+                background: rgba(255,255,255,0.1);
+                color: #ffc107;
+                padding-left: 1.5rem;
+            }
+            
+            .dropdown-menu .divider {
+                background: rgba(255,255,255,0.2);
             }
             
             .nav-menu .login-link,
@@ -802,7 +929,9 @@
                 font-size: 1.2rem;
             }
             
-            .nav-menu a, .nav-menu button {
+            .nav-menu a, 
+            .nav-menu button,
+            .nav-menu .dropdown-toggle {
                 font-size: 0.9rem;
                 padding: 0.7rem;
             }
@@ -907,7 +1036,23 @@
                     <li><a href="{{ route('program-courses') }}" class="{{ request()->routeIs('program-courses') ? 'active' : '' }}">Program Courses</a></li>
                     <li><a href="{{ route('staff') }}" class="{{ request()->routeIs('staff') ? 'active' : '' }}">Staff</a></li>
                     <li><a href="{{ route('news') }}" class="{{ request()->routeIs('news') ? 'active' : '' }}">News</a></li>
-                    <li><a href="{{ route('students') }}" class="{{ request()->routeIs('students') ? 'active' : '' }}">Students</a></li>
+                    
+                   <!-- Students Dropdown Menu -->
+<li class="dropdown">
+    <span class="dropdown-toggle">
+        Students <i class="fas fa-chevron-down"></i>
+    </span>
+    <ul class="dropdown-menu">
+        <li><a href="{{ route('students') }}"><i class="fas fa-users"></i> Student Directory</a></li>
+        <li><div class="divider"></div></li>
+        <li><a href="{{ route('alumni.index') }}"><i class="fas fa-graduation-cap"></i> Alumni Directory</a></li>
+        <li><a href="{{ route('alumni.register') }}"><i class="fas fa-user-plus"></i> Alumni Registration</a></li>
+        <li><div class="divider"></div></li>
+        <li><a href="{{ route('complaints.index') }}"><i class="fas fa-file-alt"></i> Submit Complaint</a></li>
+        <li><a href="{{ route('complaints.track-form') }}"><i class="fas fa-search"></i> Track Complaint</a></li>
+    </ul>
+</li>
+                    
                     <li><a href="{{ route('contact') }}" class="{{ request()->routeIs('contact') ? 'active' : '' }}">Contact</a></li>
                     
                     @guest
@@ -984,6 +1129,9 @@
                         <li><a href="{{ route('program-courses') }}">Program Courses</a></li>
                         <li><a href="{{ route('staff') }}">Our Staff</a></li>
                         <li><a href="{{ route('students') }}">Students</a></li>
+                        <li><a href="{{ route('alumni.index') }}">Alumni Directory</a></li>
+                        <li><a href="{{ route('alumni.register') }}">Alumni Registration</a></li>
+                        <li><a href="{{ route('complaints.index') }}">Submit Complaint</a></li>
                         <li><a href="{{ route('login') }}">Login</a></li>
                         <li><a href="http://172.16.0.21/">Student Portal</a></li>
                         <li><a href="https://mkau.edu.et/wordpress_e/?page_id=2127">Library</a></li>
@@ -994,7 +1142,10 @@
                 <div class="footer-section">
                     <h3>Resources</h3>
                     <ul>
-                        <li><a href="{{ route('students') }}">Students</a></li>
+                        <li><a href="{{ route('students') }}">Student Directory</a></li>
+                        <li><a href="{{ route('alumni.index') }}">Alumni Directory</a></li>
+                        <li><a href="{{ route('complaints.index') }}">Submit Complaint</a></li>
+                        <li><a href="{{ route('complaints.track-form') }}">Track Complaint</a></li>
                         <li><a href="#">Publications</a></li>
                         <li><a href="#">Labs</a></li>
                     </ul>
@@ -1022,13 +1173,30 @@
         </div>
     </footer>
 
-    <!-- JavaScript for mobile menu -->
+    <!-- JavaScript for mobile menu and dropdown -->
     <script>
         function toggleMenu() {
             const navMenu = document.getElementById('navMenu');
             navMenu.classList.toggle('active');
         }
-
+        
+        // Mobile dropdown toggle
+        function initMobileDropdown() {
+            const dropdowns = document.querySelectorAll('.dropdown');
+            
+            dropdowns.forEach(dropdown => {
+                const toggle = dropdown.querySelector('.dropdown-toggle');
+                
+                toggle.addEventListener('click', function(e) {
+                    if (window.innerWidth <= 768) {
+                        e.preventDefault();
+                        dropdown.classList.toggle('active');
+                    }
+                });
+            });
+        }
+        
+        // Close mobile menu when clicking outside
         document.addEventListener('click', function(event) {
             const navMenu = document.getElementById('navMenu');
             const toggle = document.querySelector('.mobile-toggle');
@@ -1037,10 +1205,11 @@
                 navMenu.classList.remove('active');
             }
         });
-
+        
+        // Active link highlighting
         document.addEventListener('DOMContentLoaded', function() {
             const currentLocation = window.location.pathname;
-            const navLinks = document.querySelectorAll('.nav-menu a, .nav-menu button');
+            const navLinks = document.querySelectorAll('.nav-menu a, .nav-menu button, .nav-menu .dropdown-toggle');
             
             navLinks.forEach(link => {
                 const linkPath = link.getAttribute('href');
@@ -1049,14 +1218,27 @@
                     link.classList.add('active');
                 }
             });
+            
+            initMobileDropdown();
         });
-
+        
+        // Logo fallback
         window.addEventListener('load', function() {
             const logo = document.getElementById('university-logo');
             if (logo) {
                 logo.addEventListener('error', function() {
                     this.style.display = 'none';
                     document.getElementById('logo-fallback-container').style.display = 'flex';
+                });
+            }
+        });
+        
+        // Handle window resize for dropdown
+        window.addEventListener('resize', function() {
+            const dropdowns = document.querySelectorAll('.dropdown');
+            if (window.innerWidth > 768) {
+                dropdowns.forEach(dropdown => {
+                    dropdown.classList.remove('active');
                 });
             }
         });

@@ -12,15 +12,25 @@ return new class extends Migration
             $table->id();
             $table->string('course_code')->unique();
             $table->string('course_name');
-            $table->text('description')->nullable();
+            $table->string('slug')->unique();
             $table->integer('credit_hours');
-            $table->integer('ects')->nullable();
-            $table->string('semester'); // e.g., "Semester 1", "Semester 2"
-            $table->integer('year'); // 1,2,3,4
-            $table->boolean('is_active')->default(true);
-            $table->unsignedBigInteger('created_by')->nullable();
-            $table->foreign('created_by')->references('id')->on('users')->onDelete('set null');
+            $table->integer('year_level'); // 1,2,3,4
+            $table->string('semester'); // 1 or 2
+            $table->text('description');
+            $table->text('objectives')->nullable();
+            $table->text('syllabus')->nullable();
+            $table->string('featured_image')->nullable();
+            $table->string('instructor')->nullable();
+            $table->string('prerequisites')->nullable();
+            $table->integer('capacity')->default(60);
+            $table->string('status')->default('active'); // active, inactive, archived
+            $table->boolean('is_elective')->default(false);
+            $table->integer('order')->default(0);
             $table->timestamps();
+            
+            $table->index('course_code');
+            $table->index('year_level');
+            $table->index('status');
         });
     }
 

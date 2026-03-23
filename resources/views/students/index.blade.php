@@ -132,13 +132,65 @@
         </div>
     </section>
 
-    <!-- ========== REVISED SECTION: STUDENT DIRECTORY (NO STUDENT ID) ========== -->
+    <!-- ========== SEARCH AND FILTER SECTION ========== -->
+    <section style="margin-bottom: 3rem;">
+        <div style="background: #f8f9fa; padding: 2rem; border-radius: 15px;">
+            <form method="GET" action="{{ route('students') }}" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;">
+                <div style="flex: 2; min-width: 200px;">
+                    <label style="display: block; margin-bottom: 0.5rem; color: #0a2342; font-weight: 500;">Search by Name or ID</label>
+                    <input type="text" name="search" class="form-control" placeholder="Enter student name or ID..." 
+                           value="{{ request('search') }}" 
+                           style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 8px;">
+                </div>
+                
+                <div style="flex: 1; min-width: 150px;">
+                    <label style="display: block; margin-bottom: 0.5rem; color: #0a2342; font-weight: 500;">Filter by Batch</label>
+                    <select name="batch" class="form-control" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 8px;">
+                        <option value="">All Batches</option>
+                        @foreach($batches as $batchOption)
+                            <option value="{{ $batchOption }}" {{ request('batch') == $batchOption ? 'selected' : '' }}>
+                                {{ $batchOption }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                
+                <div style="flex: 0 0 auto;">
+                    <button type="submit" style="background: #0a2342; color: white; padding: 0.75rem 2rem; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                    <a href="{{ route('students') }}" style="display: inline-block; background: #6c757d; color: white; padding: 0.75rem 2rem; border-radius: 8px; text-decoration: none; margin-left: 0.5rem;">
+                        <i class="fas fa-sync-alt"></i> Reset
+                    </a>
+                </div>
+            </form>
+            
+            <!-- Search Results Info -->
+            @if(request('search') || request('batch'))
+                <div style="margin-top: 1rem; padding: 0.75rem; background: #e9ecef; border-radius: 8px;">
+                    <i class="fas fa-info-circle"></i> 
+                    Showing results for:
+                    @if(request('search')) <strong>"{{ request('search') }}"</strong> @endif
+                    @if(request('batch')) <strong>Batch {{ request('batch') }}</strong> @endif
+                    <a href="{{ route('students') }}" style="margin-left: 1rem; color: #0a2342;">Clear filters</a>
+                </div>
+            @endif
+        </div>
+    </section>
+
+    <!-- ========== STUDENT DIRECTORY WITH SEARCH RESULTS ========== -->
     <section style="margin-bottom: 4rem;">
         <h2 style="color: #0a2342; margin-bottom: 2rem; text-align: center; font-size: 2.2rem;">Student Directory</h2>
-        <p style="text-align: center; color: #4a5568; max-width: 800px; margin: 0 auto 3rem;">Meet the talented students currently enrolled in our Computer Science program.</p>
+        <p style="text-align: center; color: #4a5568; max-width: 800px; margin: 0 auto 3rem;">
+            @if($allStudents->total() > 0)
+                Showing {{ $allStudents->firstItem() }} to {{ $allStudents->lastItem() }} of {{ $allStudents->total() }} students
+            @else
+                No students found
+            @endif
+        </p>
         
         @if($allStudents->count() > 0)
-        <!-- Card Grid View (Better for public, no student ID) -->
+        <!-- Card Grid View -->
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2rem; margin-bottom: 3rem;">
             @foreach($allStudents as $student)
             <div style="background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 25px rgba(10,35,66,0.1); transition: transform 0.3s ease;">
@@ -182,14 +234,12 @@
                     </div>
                     @endif
                     
-                    <!-- STUDENT ID IS DELIBERATELY EXCLUDED FROM PUBLIC VIEW -->
-                    
                     <!-- Divider -->
                     <div style="height: 1px; background: linear-gradient(90deg, transparent, #e2e8f0, transparent); margin: 1rem 0;"></div>
                     
-                    <!-- View Profile Link (Optional) -->
+                    <!-- View Profile Link -->
                     @if(isset($student->bio) || isset($student->achievements))
-                    <a href="{{ route('student.public.show', $student->id) }}" style="color: #0a2342; text-decoration: none; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                    <a href="{{ route('students.show', $student->id) }}" style="color: #0a2342; text-decoration: none; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
                         View Profile <i class="fas fa-arrow-right" style="font-size: 0.9rem;"></i>
                     </a>
                     @endif
@@ -197,34 +247,6 @@
             </div>
             @endforeach
         </div>
-
-        <!-- Alternative Table View (Commented Out - Not Recommended for Public) -->
-        {{-- 
-        <div style="background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(10,35,66,0.1); overflow: hidden;">
-            <table style="width: 100%; border-collapse: collapse;">
-                <thead style="background: linear-gradient(135deg, #0a2342 0%, #1c3a5f 100%); color: white;">
-                    <tr>
-                        <th style="padding: 1.2rem 1rem; text-align: left;">Full Name</th>
-                        <th style="padding: 1.2rem 1rem; text-align: left;">Year</th>
-                        <th style="padding: 1.2rem 1rem; text-align: left;">Section</th>
-                        <th style="padding: 1.2rem 1rem; text-align: left;">Batch</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($allStudents as $student)
-                    <tr style="border-bottom: 1px solid #edf2f7; transition: background 0.2s ease;">
-                        <td style="padding: 1rem; color: #2d3748;">{{ $student->name }}</td>
-                        <td style="padding: 1rem;">
-                            <span style="background: #e9ecef; color: #0a2342; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.9rem;">Year {{ $student->year }}</span>
-                        </td>
-                        <td style="padding: 1rem;">{{ $student->section ?? 'N/A' }}</td>
-                        <td style="padding: 1rem;">{{ $student->batch ?? 'N/A' }}</td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-        --}}
 
         <!-- Pagination -->
         @if($allStudents->hasPages())
@@ -261,19 +283,19 @@
                     border-color: #0a2342;
                 }
             </style>
-            {{ $allStudents->links() }}
+            {{ $allStudents->appends(request()->query())->links() }}
         </div>
         @endif
         
         @else
         <div style="text-align: center; padding: 4rem; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(10,35,66,0.1);">
             <i class="fas fa-user-graduate" style="font-size: 4rem; color: #cbd5e0; margin-bottom: 1rem;"></i>
-            <p style="color: #4a5568; font-size: 1.2rem;">Student directory is being updated. Please check back soon.</p>
+            <p style="color: #4a5568; font-size: 1.2rem;">No students found matching your criteria.</p>
+            <a href="{{ route('students') }}" style="display: inline-block; margin-top: 1rem; padding: 0.75rem 1.5rem; background: #0a2342; color: white; border-radius: 8px; text-decoration: none;">View All Students</a>
         </div>
         @endif
     </section>
 
-    
     <!-- Call to Action for Prospective Students -->
     <section style="background: linear-gradient(135deg, #0a2342 0%, #1c3a5f 100%); padding: 4rem; border-radius: 20px; margin-bottom: 3rem; text-align: center; color: white;">
         <h2 style="font-size: 2.2rem; margin-bottom: 1rem;">Join Our Community</h2>
@@ -316,6 +338,17 @@
         
         section[style*="padding: 4rem"] {
             padding: 2rem !important;
+        }
+        
+        form[style*="display: flex"] {
+            flex-direction: column !important;
+        }
+        
+        form[style*="display: flex"] button,
+        form[style*="display: flex"] a {
+            width: 100% !important;
+            margin: 0.5rem 0 !important;
+            text-align: center;
         }
     }
     

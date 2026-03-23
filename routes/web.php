@@ -7,6 +7,8 @@ use App\Http\Controllers\NewsController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\ComplaintController;
+use App\Http\Controllers\AlumniController;
 
 /*
 |--------------------------------------------------------------------------
@@ -43,6 +45,19 @@ Route::get('/students', [StudentController::class, 'index'])->name('students');
 // Contact Routes (Public)
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
+
+// ========== COMPLAINT ROUTES (Public) ==========
+Route::get('/complaints', [ComplaintController::class, 'index'])->name('complaints.index');
+Route::post('/complaints', [ComplaintController::class, 'store'])->name('complaints.store');
+Route::get('/complaints/thankyou/{reference_no}', [ComplaintController::class, 'thankyou'])->name('complaints.thankyou');
+Route::get('/complaints/track', [ComplaintController::class, 'trackForm'])->name('complaints.track-form');
+Route::post('/complaints/track', [ComplaintController::class, 'track'])->name('complaints.track');
+
+// ========== ALUMNI ROUTES (Public) ==========
+Route::get('/alumni', [AlumniController::class, 'index'])->name('alumni.index');
+Route::get('/alumni/register', [AlumniController::class, 'registerForm'])->name('alumni.register');
+Route::post('/alumni/register', [AlumniController::class, 'register'])->name('alumni.register.store');
+Route::get('/alumni/{alumni}', [AlumniController::class, 'show'])->name('alumni.show');
 
 /*
 |--------------------------------------------------------------------------
@@ -122,6 +137,29 @@ Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function ()
     Route::delete('/contacts/{contact}', [ContactController::class, 'destroy'])->name('contacts.destroy');
     Route::post('/contacts/bulk-delete', [ContactController::class, 'bulkDelete'])->name('contacts.bulk-delete');
     
+    // Complaint Management (Admin)
+    Route::prefix('complaints')->name('complaints.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\ComplaintController::class, 'index'])->name('index');
+        Route::get('/{complaint}', [App\Http\Controllers\Admin\ComplaintController::class, 'show'])->name('show');
+        Route::post('/{complaint}/respond', [App\Http\Controllers\Admin\ComplaintController::class, 'respond'])->name('respond');
+        Route::patch('/{complaint}/status', [App\Http\Controllers\Admin\ComplaintController::class, 'updateStatus'])->name('update-status');
+        Route::delete('/{complaint}', [App\Http\Controllers\Admin\ComplaintController::class, 'destroy'])->name('destroy');
+        Route::post('/bulk-delete', [App\Http\Controllers\Admin\ComplaintController::class, 'bulkDelete'])->name('bulk-delete');
+        Route::get('/export/csv', [App\Http\Controllers\Admin\ComplaintController::class, 'export'])->name('export');
+    });
+    
+    // ========== ALUMNI MANAGEMENT (ADMIN) ==========
+    Route::prefix('alumni')->name('alumni.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\AlumniController::class, 'index'])->name('index');
+        Route::get('/dashboard', [App\Http\Controllers\Admin\AlumniController::class, 'dashboard'])->name('dashboard');
+        Route::get('/report', [App\Http\Controllers\Admin\AlumniController::class, 'report'])->name('report');
+        Route::get('/export', [App\Http\Controllers\Admin\AlumniController::class, 'export'])->name('export');
+        Route::get('/{alumni}', [App\Http\Controllers\Admin\AlumniController::class, 'show'])->name('show');
+        Route::post('/{alumni}/verify', [App\Http\Controllers\Admin\AlumniController::class, 'verify'])->name('verify');
+        Route::post('/{alumni}/reject', [App\Http\Controllers\Admin\AlumniController::class, 'reject'])->name('reject');
+        Route::delete('/{alumni}', [App\Http\Controllers\Admin\AlumniController::class, 'destroy'])->name('destroy');
+    });
+    
     // User Management
     Route::prefix('users')->name('users.')->group(function () {
         Route::get('/', [UserController::class, 'index'])->name('index');
@@ -151,6 +189,11 @@ Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function ()
         Route::put('/{course}', [App\Http\Controllers\Admin\CourseController::class, 'update'])->name('update');
         Route::delete('/{course}', [App\Http\Controllers\Admin\CourseController::class, 'destroy'])->name('destroy');
         Route::patch('/{course}/toggle-status', [App\Http\Controllers\Admin\CourseController::class, 'toggleStatus'])->name('toggle-status');
+        
+        // Bulk Upload Routes
+        Route::get('/upload', [App\Http\Controllers\Admin\CourseController::class, 'uploadForm'])->name('upload-form');
+        Route::post('/upload', [App\Http\Controllers\Admin\CourseController::class, 'upload'])->name('upload');
+        Route::get('/template', [App\Http\Controllers\Admin\CourseController::class, 'downloadTemplate'])->name('template');
         
         // Assignment Routes (Instructors & Students)
         Route::get('/{course}/assign', [App\Http\Controllers\Admin\CourseController::class, 'assignForm'])->name('assign');
@@ -259,6 +302,10 @@ Route::middleware(['staff'])->prefix('staff')->name('staff.')->group(function ()
     // ========== STUDENTS (READ-ONLY) ==========
     Route::get('/students', [StudentController::class, 'staffIndex'])->name('students.index');
     Route::get('/students/{student}', [StudentController::class, 'staffShow'])->name('students.show');
+    
+    // ========== COMPLAINTS (STAFF VIEW) ==========
+    Route::get('/complaints', [App\Http\Controllers\Staff\ComplaintController::class, 'index'])->name('complaints.index');
+    Route::get('/complaints/{complaint}', [App\Http\Controllers\Staff\ComplaintController::class, 'show'])->name('complaints.show');
 });
 
 /*
@@ -299,6 +346,24 @@ Route::middleware(['auth', 'student'])->prefix('student')->name('student.')->gro
     // News (read-only)
     Route::get('/news', [App\Http\Controllers\NewsController::class, 'studentIndex'])->name('news.index');
     Route::get('/news/{news}', [App\Http\Controllers\NewsController::class, 'studentShow'])->name('news.show');
+    
+    // Student Complaints
+    Route::get('/my-complaints', [App\Http\Controllers\StudentController::class, 'myComplaints'])->name('complaints');
+    Route::get('/complaints/{complaint}', [App\Http\Controllers\StudentController::class, 'complaintDetail'])->name('complaints.show');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Alumni Routes (Protected - Authenticated Users)
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth'])->prefix('alumni')->name('alumni.')->group(function () {
+    Route::get('/dashboard', [AlumniController::class, 'dashboard'])->name('dashboard');
+    Route::get('/profile/edit', [AlumniController::class, 'editProfile'])->name('profile.edit');
+    Route::put('/profile', [AlumniController::class, 'updateProfile'])->name('profile.update');
+    Route::get('/jobs/create', [AlumniController::class, 'createJob'])->name('jobs.create');
+    Route::post('/jobs', [AlumniController::class, 'storeJob'])->name('jobs.store');
 });
 
 /*
@@ -328,6 +393,15 @@ Route::middleware(['auth'])->prefix('chat')->name('chat.')->group(function () {
 Route::get('/register', [App\Http\Controllers\Auth\RegisterController::class, 'showRegistrationForm'])->name('register');
 Route::post('/register', [App\Http\Controllers\Auth\RegisterController::class, 'register']);
 Route::get('/all-assignments', [App\Http\Controllers\StudentController::class, 'allAssignments'])->name('all-assignments');
+
+/*
+|--------------------------------------------------------------------------
+| ADDED: Staff Admin Route (For Staff Management)
+|--------------------------------------------------------------------------
+*/
+
+// This route is for the staff management page accessible to admin
+Route::middleware(['admin'])->get('/staff-admin', [StaffController::class, 'admin'])->name('staff.admin');
 
 /*
 |--------------------------------------------------------------------------
