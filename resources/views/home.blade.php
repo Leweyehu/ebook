@@ -13,9 +13,23 @@
             <h1 style="font-size: 4rem; margin-bottom: 1.2rem; font-weight: 700; text-shadow: 2px 2px 4px rgba(9, 79, 132, 0.5); letter-spacing: -0.5px; color: #003366;">
                 Mekdela Amba University
             </h1>
-            <p style="font-size: 1.5rem; max-width: 800px; margin: 0 auto 2.5rem; font-weight: 500; letter-spacing: 1px; color: #00509e; text-shadow: 1px 1px 2px rgba(255,255,255,0.3);">
-                Welcome to Computer Science
-                <br> 
+            <div class="scrolling-text-container" style="overflow: hidden; white-space: nowrap; margin: 0 auto 1rem;">
+                <p class="scrolling-text" style="font-size: 1.5rem; font-weight: 500; letter-spacing: 1px; color: #00509e; text-shadow: 1px 1px 2px rgba(255,255,255,0.3); display: inline-block; white-space: nowrap;">
+                   <div style="width: 100%; overflow: hidden; background: FFFAFA; padding: 20px 0;">
+  <div style="display: inline-block; animation: scrollRTL 8s linear infinite; white-space: nowrap; font-size: 1.5rem; color: #00ffbf;">
+    <b style="font-size:40px">Welcome to Computer Science</b>
+  </div>
+</div>
+
+<style>
+  @keyframes scrollRTL {
+    /* 0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); } */
+  }
+</style>
+                </p>
+            </div>
+            <p style="font-size: 1.2rem; max-width: 800px; margin: 0 auto 2rem; font-weight: 400; letter-spacing: 0.5px; color: #00509e; text-shadow: 1px 1px 2px rgba(255,255,255,0.3);">
                 Innovating the Future through Technology and Research
             </p>
             <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
@@ -360,6 +374,32 @@
         100% { transform: scale(4); opacity: 0; }
     }
     
+    /* Scrolling Text Animation */
+    @keyframes scrollLeft {
+        0% {
+            transform: translateX(100%);
+        }
+        100% {
+            transform: translateX(-100%);
+        }
+    }
+    
+    .scrolling-text-container {
+        overflow: hidden;
+        white-space: nowrap;
+        width: 100%;
+    }
+    
+    .scrolling-text {
+        display: inline-block;
+        animation: scrollLeft 15s linear infinite;
+        white-space: nowrap;
+    }
+    
+    .scrolling-text:hover {
+        animation-play-state: paused;
+    }
+    
     /* Program Card Hover Effects */
     .program-card-interactive {
         transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -463,8 +503,12 @@
         animation: fadeInUp 0.8s ease;
     }
     
-    .hero-section p {
+    .hero-section .scrolling-text-container {
         animation: fadeInUp 0.8s ease 0.2s both;
+    }
+    
+    .hero-section p {
+        animation: fadeInUp 0.8s ease 0.3s both;
     }
     
     .hero-section div {
@@ -510,6 +554,10 @@
         [style*="grid-template-columns: repeat(4, 1fr)"] {
             grid-template-columns: repeat(2, 1fr) !important;
         }
+        
+        .scrolling-text {
+            animation-duration: 20s;
+        }
     }
     
     @media (max-width: 768px) {
@@ -529,8 +577,13 @@
             font-size: 2.5rem !important;
         }
         
-        .hero-section p {
+        .scrolling-text {
             font-size: 1.2rem !important;
+            animation-duration: 12s;
+        }
+        
+        .hero-section p {
+            font-size: 1rem !important;
         }
         
         h2 {
@@ -551,8 +604,13 @@
             font-size: 2rem !important;
         }
         
+        .scrolling-text {
+            font-size: 1rem !important;
+            animation-duration: 10s;
+        }
+        
         .hero-section p {
-            font-size: 1.1rem !important;
+            font-size: 0.9rem !important;
         }
         
         h2 {
