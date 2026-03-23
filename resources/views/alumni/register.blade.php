@@ -83,11 +83,6 @@
                         <select name="degree" id="degree" required style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px;">
                             <option value="">Select Degree</option>
                             <option value="B.Sc. Computer Science" {{ old('degree') == 'B.Sc. Computer Science' ? 'selected' : '' }}>B.Sc. Computer Science</option>
-                            <option value="M.Sc. Computer Science" {{ old('degree') == 'M.Sc. Computer Science' ? 'selected' : '' }}>M.Sc. Computer Science</option>
-                            <option value="B.Sc. Information Technology" {{ old('degree') == 'B.Sc. Information Technology' ? 'selected' : '' }}>B.Sc. Information Technology</option>
-                            <option value="M.Sc. Information Technology" {{ old('degree') == 'M.Sc. Information Technology' ? 'selected' : '' }}>M.Sc. Information Technology</option>
-                            <option value="B.Sc. Software Engineering" {{ old('degree') == 'B.Sc. Software Engineering' ? 'selected' : '' }}>B.Sc. Software Engineering</option>
-                            <option value="M.Sc. Software Engineering" {{ old('degree') == 'M.Sc. Software Engineering' ? 'selected' : '' }}>M.Sc. Software Engineering</option>
                         </select>
                     </div>
                 </div>
