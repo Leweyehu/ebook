@@ -13,27 +13,14 @@
             <h1 style="font-size: 4rem; margin-bottom: 1.2rem; font-weight: 700; text-shadow: 2px 2px 4px rgba(9, 79, 132, 0.5); letter-spacing: -0.5px; color: #003366;">
                 Mekdela Amba University
             </h1>
-            <div class="scrolling-text-container" style="overflow: hidden; white-space: nowrap; margin: 0 auto 1rem;">
-                <p class="scrolling-text" style="font-size: 1.5rem; font-weight: 500; letter-spacing: 1px; color: #00509e; text-shadow: 1px 1px 2px rgba(255,255,255,0.3); display: inline-block; white-space: nowrap;">
-                   <div style="width: 100%; overflow: hidden; background: FFFAFA; padding: 20px 0;">
-  <div style="display: inline-block; animation: scrollRTL 8s linear infinite; white-space: nowrap; font-size: 1.5rem; color: #00ffbf;">
-    <b style="font-size:40px">Welcome to Computer Science</b>
-  </div>
-</div>
-
-<style>
-  @keyframes scrollRTL {
-    /* 0% { transform: translateX(100%); }
-    100% { transform: translateX(-100%); } */
-  }
-</style>
-                </p>
-            </div>
+            <p style="font-size: 1.8rem; font-weight: 500; letter-spacing: 1px; color: #00509e; text-shadow: 1px 1px 2px rgba(255,255,255,0.3); margin: 0 auto 1rem;">
+                Welcome to Computer Science
+            </p>
             <p style="font-size: 1.2rem; max-width: 800px; margin: 0 auto 2rem; font-weight: 400; letter-spacing: 0.5px; color: #00509e; text-shadow: 1px 1px 2px rgba(255,255,255,0.3);">
                 Innovating the Future through Technology and Research
             </p>
             <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
-                <a href="{{ route('about') }}" class="btn-primary" style="display: inline-block; padding: 15px 45px; background: #FFD700; color: #4575a5; text-decoration: none; border-radius: 50px; font-weight: 600; font-size: 1.1rem; border: 2px solid transparent; transition: all 0.3s ease; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); text-transform: uppercase; letter-spacing: 1px;">Learn More</a>
+                <a href="{{ route('about') }}" class="btn-primary" style="display: inline-block; padding: 15px 45px; background: #FFD700; color: #003366; text-decoration: none; border-radius: 50px; font-weight: 600; font-size: 1.1rem; border: 2px solid transparent; transition: all 0.3s ease; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); text-transform: uppercase; letter-spacing: 1px;">Learn More</a>
                 <a href="{{ route('contact') }}" class="btn-secondary" style="display: inline-block; padding: 15px 45px; background: #003366; color: white; text-decoration: none; border-radius: 50px; font-weight: 600; font-size: 1.1rem; border: 2px solid #FFD700; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;">Contact Us</a>
             </div>
         </div>
@@ -332,7 +319,7 @@
             </p>
             <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
                 <a href="{{ route('programs') }}" style="display: inline-block; padding: 16px 50px; background: #FFD700; color: #003366; text-decoration: none; border-radius: 50px; font-weight: 600; font-size: 1.1rem; border: 2px solid transparent; transition: all 0.3s ease; box-shadow: 0 8px 20px rgba(26, 165, 186, 0.73); text-transform: uppercase; letter-spacing: 1px;">Explore more about our Program</a>
-                <a href="{{ route('contact') }}" style="display: inline-block; padding: 16px 50px; background: transparent; color: black; text-decoration: none; border-radius: 50px; font-weight: 600; font-size: 1.1rem; border: 0.5px solid #003366; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;">Contact Admissions</a>
+                <a href="{{ route('contact') }}" style="display: inline-block; padding: 16px 50px; background: #003366; color: white; text-decoration: none; border-radius: 50px; font-weight: 600; font-size: 1.1rem; border: 2px solid #FFD700; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;">Contact Admissions</a>
             </div>
         </div>
     </section>
@@ -372,32 +359,6 @@
     @keyframes ripple {
         0% { transform: scale(0); opacity: 0.5; }
         100% { transform: scale(4); opacity: 0; }
-    }
-    
-    /* Scrolling Text Animation */
-    @keyframes scrollLeft {
-        0% {
-            transform: translateX(100%);
-        }
-        100% {
-            transform: translateX(-100%);
-        }
-    }
-    
-    .scrolling-text-container {
-        overflow: hidden;
-        white-space: nowrap;
-        width: 100%;
-    }
-    
-    .scrolling-text {
-        display: inline-block;
-        animation: scrollLeft 15s linear infinite;
-        white-space: nowrap;
-    }
-    
-    .scrolling-text:hover {
-        animation-play-state: paused;
     }
     
     /* Program Card Hover Effects */
@@ -503,12 +464,8 @@
         animation: fadeInUp 0.8s ease;
     }
     
-    .hero-section .scrolling-text-container {
-        animation: fadeInUp 0.8s ease 0.2s both;
-    }
-    
     .hero-section p {
-        animation: fadeInUp 0.8s ease 0.3s both;
+        animation: fadeInUp 0.8s ease 0.2s both;
     }
     
     .hero-section div {
@@ -516,20 +473,30 @@
     }
     
     /* Button Hover Effects */
-    .btn-primary:hover, .btn-secondary:hover, 
-    a[style*="background: #FFD700"]:hover,
-    a[style*="background: transparent"]:hover {
+    .btn-primary:hover {
+        background: #ffed4a !important;
         transform: translateY(-3px);
         box-shadow: 0 15px 30px rgba(0,0,0,0.2) !important;
     }
     
-    .btn-primary:hover, a[style*="background: #FFD700"]:hover {
-        background: #ffed4a !important;
+    .btn-secondary:hover {
+        background: #1c4b7a !important;
+        border-color: #FFD700 !important;
+        transform: translateY(-3px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.2) !important;
     }
     
-    .btn-secondary:hover, a[style*="background: transparent"]:hover {
+    a[style*="background: #FFD700"]:hover {
+        background: #ffed4a !important;
+        transform: translateY(-3px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.2) !important;
+    }
+    
+    a[style*="background: transparent"]:hover {
         background: rgba(255,215,0,0.15) !important;
         border-color: #FFD700 !important;
+        transform: translateY(-3px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.2) !important;
     }
     
     /* Highlight Stats Hover */
@@ -554,10 +521,6 @@
         [style*="grid-template-columns: repeat(4, 1fr)"] {
             grid-template-columns: repeat(2, 1fr) !important;
         }
-        
-        .scrolling-text {
-            animation-duration: 20s;
-        }
     }
     
     @media (max-width: 768px) {
@@ -575,11 +538,6 @@
         
         .hero-section h1 {
             font-size: 2.5rem !important;
-        }
-        
-        .scrolling-text {
-            font-size: 1.2rem !important;
-            animation-duration: 12s;
         }
         
         .hero-section p {
@@ -602,11 +560,6 @@
     @media (max-width: 480px) {
         .hero-section h1 {
             font-size: 2rem !important;
-        }
-        
-        .scrolling-text {
-            font-size: 1rem !important;
-            animation-duration: 10s;
         }
         
         .hero-section p {

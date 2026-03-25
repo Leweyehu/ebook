@@ -9,6 +9,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\AlumniController;
+use App\Http\Controllers\ChatbotController;
 
 /*
 |--------------------------------------------------------------------------
@@ -58,6 +59,10 @@ Route::get('/alumni', [AlumniController::class, 'index'])->name('alumni.index');
 Route::get('/alumni/register', [AlumniController::class, 'registerForm'])->name('alumni.register');
 Route::post('/alumni/register', [AlumniController::class, 'register'])->name('alumni.register.store');
 Route::get('/alumni/{alumni}', [AlumniController::class, 'show'])->name('alumni.show');
+
+// ========== CHATBOT ROUTES (Public) ==========
+Route::get('/chatbot', [ChatbotController::class, 'index'])->name('chatbot.index');
+Route::post('/chatbot/send', [ChatbotController::class, 'sendMessage'])->name('chatbot.send');
 
 /*
 |--------------------------------------------------------------------------

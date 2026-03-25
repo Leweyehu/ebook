@@ -78,7 +78,6 @@
                             <input type="radio" name="complainant_type" value="staff"> Staff/Faculty
                         </label>
                         <label style="display: flex; align-items: center; gap: 0.5rem;">
-                            <input type="radio" name="complainant_type" value="parent"> Parent
                         </label>
                         <label style="display: flex; align-items: center; gap: 0.5rem;">
                             <input type="radio" name="complainant_type" value="other"> Other

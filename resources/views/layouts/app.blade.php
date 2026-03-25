@@ -1031,27 +1031,39 @@
                 
                 <ul class="nav-menu" id="navMenu">
                     <li><a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}">Home</a></li>
-                    <li><a href="{{ route('about') }}" class="{{ request()->routeIs('about') ? 'active' : '' }}">About</a></li>
+                    
+                    <!-- About Dropdown Menu -->
+                    <li class="dropdown">
+                        <span class="dropdown-toggle">
+                            About <i class="fas fa-chevron-down"></i>
+                        </span>
+                        <ul class="dropdown-menu">
+                            <li><a href="{{ route('about') }}"><i class="fas fa-info-circle"></i> About Us</a></li>
+                            <li><div class="divider"></div></li>
+                            <li><a href="{{ route('chatbot.index') }}"><i class="fas fa-robot"></i> Chat Assistant</a></li>
+                        </ul>
+                    </li>
+                    
                     <li><a href="{{ route('programs') }}" class="{{ request()->routeIs('programs') ? 'active' : '' }}">Programs</a></li>
                     <li><a href="{{ route('program-courses') }}" class="{{ request()->routeIs('program-courses') ? 'active' : '' }}">Program Courses</a></li>
                     <li><a href="{{ route('staff') }}" class="{{ request()->routeIs('staff') ? 'active' : '' }}">Staff</a></li>
                     <li><a href="{{ route('news') }}" class="{{ request()->routeIs('news') ? 'active' : '' }}">News</a></li>
                     
-                   <!-- Students Dropdown Menu -->
-<li class="dropdown">
-    <span class="dropdown-toggle">
-        Students <i class="fas fa-chevron-down"></i>
-    </span>
-    <ul class="dropdown-menu">
-        <li><a href="{{ route('students') }}"><i class="fas fa-users"></i> Student Directory</a></li>
-        <li><div class="divider"></div></li>
-        <li><a href="{{ route('alumni.index') }}"><i class="fas fa-graduation-cap"></i> Alumni Directory</a></li>
-        <li><a href="{{ route('alumni.register') }}"><i class="fas fa-user-plus"></i> Alumni Registration</a></li>
-        <li><div class="divider"></div></li>
-        <li><a href="{{ route('complaints.index') }}"><i class="fas fa-file-alt"></i> Submit Complaint</a></li>
-        <li><a href="{{ route('complaints.track-form') }}"><i class="fas fa-search"></i> Track Complaint</a></li>
-    </ul>
-</li>
+                    <!-- Students Dropdown Menu -->
+                    <li class="dropdown">
+                        <span class="dropdown-toggle">
+                            Students <i class="fas fa-chevron-down"></i>
+                        </span>
+                        <ul class="dropdown-menu">
+                            <li><a href="{{ route('students') }}"><i class="fas fa-users"></i> Student Directory</a></li>
+                            <li><div class="divider"></div></li>
+                            <li><a href="{{ route('alumni.index') }}"><i class="fas fa-graduation-cap"></i> Alumni Directory</a></li>
+                            <li><a href="{{ route('alumni.register') }}"><i class="fas fa-user-plus"></i> Alumni Registration</a></li>
+                            <li><div class="divider"></div></li>
+                            <li><a href="{{ route('complaints.index') }}"><i class="fas fa-file-alt"></i> Submit Complaint</a></li>
+                            <li><a href="{{ route('complaints.track-form') }}"><i class="fas fa-search"></i> Track Complaint</a></li>
+                        </ul>
+                    </li>
                     
                     <li><a href="{{ route('contact') }}" class="{{ request()->routeIs('contact') ? 'active' : '' }}">Contact</a></li>
                     
@@ -1125,6 +1137,7 @@
                     <h3>Quick Links</h3>
                     <ul>
                         <li><a href="{{ route('about') }}">About Us</a></li>
+                        <li><a href="{{ route('chatbot.index') }}">Chat Assistant</a></li>
                         <li><a href="{{ route('programs') }}">Academic Programs</a></li>
                         <li><a href="{{ route('program-courses') }}">Program Courses</a></li>
                         <li><a href="{{ route('staff') }}">Our Staff</a></li>
@@ -1144,6 +1157,7 @@
                     <ul>
                         <li><a href="{{ route('students') }}">Student Directory</a></li>
                         <li><a href="{{ route('alumni.index') }}">Alumni Directory</a></li>
+                        <li><a href="{{ route('chatbot.index') }}">Chat Assistant</a></li>
                         <li><a href="{{ route('complaints.index') }}">Submit Complaint</a></li>
                         <li><a href="{{ route('complaints.track-form') }}">Track Complaint</a></li>
                         <li><a href="#">Publications</a></li>
