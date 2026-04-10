@@ -72,6 +72,31 @@ class ComplaintController extends Controller
     }
 
     /**
+     * Approve complaint
+     */
+    public function approve(Complaint $complaint)
+    {
+        $complaint->update([
+            'status' => 'resolved',
+            'resolved_at' => now()
+        ]);
+        
+        return redirect()->route('admin.complaints.index')
+            ->with('success', 'Complaint approved and marked as resolved!');
+    }
+
+    /**
+     * Reject complaint
+     */
+    public function reject(Complaint $complaint)
+    {
+        $complaint->update(['status' => 'rejected']);
+        
+        return redirect()->route('admin.complaints.index')
+            ->with('success', 'Complaint rejected!');
+    }
+
+    /**
      * Delete complaint
      */
     public function destroy(Complaint $complaint)

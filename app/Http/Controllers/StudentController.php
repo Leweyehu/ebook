@@ -3,61 +3,37 @@
 namespace App\Http\Controllers;
 
 use App\Models\Student;
-use App\Models\Course;
-use App\Models\CourseMaterial;
-use App\Models\Assignment;
-use App\Models\AssignmentSubmission;
-use App\Models\CourseNotice;
-use App\Models\Grade;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\StudentsImport;
-use Maatwebsite\Excel\Validators\ValidationException;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 
 class StudentController extends Controller
 {
     /**
-     * Display public student listing with search and batch filter
+     * Display public student listing
      */
     public function index(Request $request)
     {
         $batch = $request->get('batch');
         $search = $request->get('search');
         
-        // Get students with filters
-        $allStudents = Student::where('is_active', true)
+        $students = Student::where('is_active', true)
             ->when($batch, function($query, $batch) {
                 return $query->where('batch', $batch);
             })
             ->when($search, function($query, $search) {
                 return $query->where(function($q) use ($search) {
                     $q->where('name', 'LIKE', "%{$search}%")
-                      ->orWhere('student_id', 'LIKE', "%{$search}%")
-                      ->orWhere('email', 'LIKE', "%{$search}%");
+                      ->orWhere('student_id', 'LIKE', "%{$search}%");
                 });
             })
             ->orderBy('year')
             ->orderBy('name')
             ->paginate(20);
         
-        // Get statistics for the dashboard
-        $year1 = Student::where('is_active', true)->where('year', 1)->count();
-        $year2 = Student::where('is_active', true)->where('year', 2)->count();
-        $year3 = Student::where('is_active', true)->where('year', 3)->count();
-        $year4 = Student::where('is_active', true)->where('year', 4)->count();
-        $total = Student::where('is_active', true)->count();
-        
-        $studentsByYear = [
-            'Year 1' => $year1,
-            'Year 2' => $year2,
-            'Year 3' => $year3,
-            'Year 4' => $year4,
-        ];
-        
-        // Get unique batches for filter dropdown
         $batches = Student::where('is_active', true)
             ->whereNotNull('batch')
             ->distinct()
@@ -66,15 +42,19 @@ class StudentController extends Controller
             ->sort()
             ->values();
         
-        return view('students.index', compact(
-            'allStudents', 
-            'year1', 'year2', 'year3', 'year4', 'total', 
-            'studentsByYear', 'batches', 'batch', 'search'
-        ));
+        $stats = [
+            'total' => Student::where('is_active', true)->count(),
+            'year1' => Student::where('is_active', true)->where('year', 1)->count(),
+            'year2' => Student::where('is_active', true)->where('year', 2)->count(),
+            'year3' => Student::where('is_active', true)->where('year', 3)->count(),
+            'year4' => Student::where('is_active', true)->where('year', 4)->count(),
+        ];
+        
+        return view('students.index', compact('students', 'batches', 'stats', 'batch', 'search'));
     }
 
     /**
-     * Display single student details (public)
+     * Display single student profile (public)
      */
     public function show($id)
     {
@@ -94,9 +74,11 @@ class StudentController extends Controller
                         return $query->where('batch', $batch);
                     })
                     ->when($search, function($query, $search) {
-                        return $query->where('name', 'LIKE', "%{$search}%")
-                                     ->orWhere('student_id', 'LIKE', "%{$search}%")
-                                     ->orWhere('email', 'LIKE', "%{$search}%");
+                        return $query->where(function($q) use ($search) {
+                            $q->where('name', 'LIKE', "%{$search}%")
+                              ->orWhere('student_id', 'LIKE', "%{$search}%")
+                              ->orWhere('email', 'LIKE', "%{$search}%");
+                        });
                     })
                     ->orderBy('year')
                     ->orderBy('name')
@@ -121,163 +103,159 @@ class StudentController extends Controller
     }
 
     /**
-     * Admin: Bulk upload via Excel
+     * Admin: Store individual student
      */
-    public function upload(Request $request)
+    public function store(Request $request)
     {
         $request->validate([
-            'file' => 'required|mimes:xlsx,xls,csv|max:5120' // 5MB max
+            'student_id' => 'required|unique:students,student_id',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:students,email',
+            'year' => 'required|in:1,2,3,4',
+            'section' => 'nullable|string|max:10',
+            'batch' => 'nullable|string|max:50',
         ]);
 
         try {
-            $file = $request->file('file');
+            DB::beginTransaction();
+
+            $student = Student::create([
+                'student_id' => $request->student_id,
+                'name' => $request->name,
+                'email' => $request->email,
+                'year' => $request->year,
+                'section' => $request->section,
+                'batch' => $request->batch,
+                'is_active' => true
+            ]);
+
+            User::updateOrCreate(
+                ['email' => $request->email],
+                [
+                    'name' => $request->name,
+                    'password' => Hash::make($request->student_id),
+                    'role' => 'student'
+                ]
+            );
+
+            DB::commit();
+            return redirect()->back()->with('success', "✅ Student '{$request->name}' added successfully!");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', '❌ Error adding student: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Admin: Download template for bulk upload
+     */
+    public function downloadTemplate()
+    {
+        $filename = "student_upload_template.csv";
+        
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+            'Pragma' => 'no-cache',
+            'Expires' => '0'
+        ];
+        
+        $callback = function() {
+            $file = fopen('php://output', 'w');
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF)); // UTF-8 BOM
+            fputcsv($file, ['student_id', 'name', 'email', 'year', 'section', 'batch']);
+            fputcsv($file, ['MAU2024001', 'John Doe', 'john.doe@university.edu', '1', 'A', '2024']);
+            fclose($file);
+        };
+        
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Admin: Bulk upload students from CSV
+     */
+    public function upload(Request $request)
+    {
+        // FIX: Using 'student_file' to match your Blade input name
+        $request->validate([
+            'student_file' => 'required|mimes:csv,txt|max:5120'
+        ]);
+
+        try {
+            $file = $request->file('student_file');
+            $handle = fopen($file->getPathname(), 'r');
             
-            if (!$file->isValid()) {
-                return redirect()->back()->with('error', '❌ File upload failed. Please try again.');
-            }
-            
-            // Read the entire file content and remove BOM
-            $content = file_get_contents($file->getPathname());
-            
-            // Remove UTF-8 BOM if present
-            if (substr($content, 0, 3) == "\xEF\xBB\xBF") {
-                $content = substr($content, 3);
-            }
-            
-            // Create a temporary file without BOM
-            $tempPath = tempnam(sys_get_temp_dir(), 'csv_clean_');
-            file_put_contents($tempPath, $content);
-            
-            // Read first few lines to verify format
-            $handle = fopen($tempPath, 'r');
             $rawHeaders = fgetcsv($handle);
-            $firstRow = fgetcsv($handle);
-            fclose($handle);
-            
-            // Clean headers
             $headers = [];
             foreach ($rawHeaders as $header) {
-                $cleanHeader = preg_replace('/[^\x20-\x7E]/', '', $header);
-                $cleanHeader = trim(strtolower($cleanHeader));
-                if (!empty($cleanHeader)) {
-                    $headers[] = $cleanHeader;
-                }
+                $cleanHeader = trim(strtolower(preg_replace('/^\xEF\xBB\xBF/', '', $header)));
+                $headers[] = $cleanHeader;
             }
             
-            // Define expected headers
             $expectedHeaders = ['student_id', 'name', 'email', 'year', 'section', 'batch'];
-            
-            // Create mapping
             $headerMap = [];
             foreach ($headers as $index => $header) {
                 if (in_array($header, $expectedHeaders)) {
                     $headerMap[$header] = $index;
-                } elseif (strpos($header, 'student') !== false && strpos($header, 'id') !== false) {
-                    $headerMap['student_id'] = $index;
-                } elseif ($header == 'full name' || $header == 'student name' || $header == 'name') {
-                    $headerMap['name'] = $index;
-                } elseif ($header == 'e-mail' || $header == 'mail' || $header == 'email') {
-                    $headerMap['email'] = $index;
-                } elseif ($header == 'yr' || $header == 'study year' || $header == 'year') {
-                    $headerMap['year'] = $index;
-                } elseif ($header == 'sec' || $header == 'class' || $header == 'section') {
-                    $headerMap['section'] = $index;
-                } elseif ($header == 'bach' || $header == 'bat ch' || $header == 'year of entry' || $header == 'batch') {
-                    $headerMap['batch'] = $index;
                 }
             }
             
-            // Check required headers
             $requiredHeaders = ['student_id', 'name', 'email', 'year'];
-            $missingHeaders = [];
-            
-            foreach ($requiredHeaders as $required) {
-                if (!isset($headerMap[$required])) {
-                    $missingHeaders[] = $required;
+            foreach ($requiredHeaders as $req) {
+                if (!isset($headerMap[$req])) {
+                    fclose($handle);
+                    return redirect()->back()->with('error', "❌ CSV missing column: $req");
                 }
             }
             
-            if (!empty($missingHeaders)) {
-                return redirect()->back()->with('error', 
-                    '❌ CSV missing required headers: ' . implode(', ', $missingHeaders) . 
-                    '<br><br>Required headers: student_id, name, email, year<br>' .
-                    'Found headers: ' . implode(', ', $headers));
-            }
-            
-            // Create fixed file
-            $outputPath = tempnam(sys_get_temp_dir(), 'csv_fixed_');
-            $outputHandle = fopen($outputPath, 'w');
-            fputcsv($outputHandle, $expectedHeaders);
-            
-            // Process rows
-            $handle = fopen($tempPath, 'r');
-            fgetcsv($handle); // Skip original headers
-            
+            $successCount = 0;
+            $errorCount = 0;
+            $errors = [];
             $rowNumber = 1;
+
+            DB::beginTransaction();
+
             while (($row = fgetcsv($handle)) !== false) {
                 $rowNumber++;
-                $mappedRow = [];
-                foreach ($expectedHeaders as $expected) {
-                    if (isset($headerMap[$expected]) && isset($row[$headerMap[$expected]])) {
-                        $value = trim($row[$headerMap[$expected]]);
-                        // Clean year field
-                        if ($expected == 'year') {
-                            $value = is_numeric($value) ? intval($value) : 1;
-                            $value = max(1, min(4, $value)); // Ensure between 1-4
-                        }
-                        $mappedRow[] = $value;
-                    } else {
-                        $mappedRow[] = '';
-                    }
+                if (empty(array_filter($row)) || strpos($row[0], '#') === 0) continue;
+
+                $data = [
+                    'student_id' => trim($row[$headerMap['student_id']] ?? ''),
+                    'name'       => trim($row[$headerMap['name']] ?? ''),
+                    'email'      => trim($row[$headerMap['email']] ?? ''),
+                    'year'       => trim($row[$headerMap['year']] ?? ''),
+                    'section'    => isset($headerMap['section']) ? trim($row[$headerMap['section']] ?? '') : null,
+                    'batch'      => isset($headerMap['batch']) ? trim($row[$headerMap['batch']] ?? '') : null,
+                    'is_active'  => true
+                ];
+
+                // Check for duplicates
+                if (Student::where('student_id', $data['student_id'])->orWhere('email', $data['email'])->exists()) {
+                    $errors[] = "Row $rowNumber: ID or Email already exists.";
+                    $errorCount++;
+                    continue;
                 }
-                fputcsv($outputHandle, $mappedRow);
+
+                // FIX: Create Student AND User record
+                Student::create($data);
+                User::create([
+                    'name' => $data['name'],
+                    'email' => $data['email'],
+                    'password' => Hash::make($data['student_id']),
+                    'role' => 'student'
+                ]);
+                
+                $successCount++;
             }
-            
+
+            DB::commit();
             fclose($handle);
-            fclose($outputHandle);
             
-            // Import
-            $import = new StudentsImport();
-            Excel::import($import, $outputPath);
-            
-            // Clean up
-            if (file_exists($tempPath)) unlink($tempPath);
-            if (file_exists($outputPath)) unlink($outputPath);
-            
-            $successful = $import->getSuccessfulCount();
-            $failed = $import->getFailedCount();
-            $importDebug = $import->getDebug();
-            
-            if ($successful > 0) {
-                $message = "✅ Import completed!<br>";
-                $message .= "📊 Successfully imported: {$successful} students<br>";
-                if ($failed > 0) {
-                    $message .= "⚠️ Skipped: {$failed} rows (duplicates or invalid data)<br>";
-                }
-                return redirect()->route('admin.students.index')->with('success', $message);
-            } else {
-                $errorMsg = "❌ No students were imported.<br><br>";
-                foreach ($importDebug as $item) {
-                    $errorMsg .= "• {$item}<br>";
-                }
-                return redirect()->back()->with('error', $errorMsg);
-            }
-            
-        } catch (ValidationException $e) {
-            $failures = $e->failures();
-            $errorMessages = [];
-            foreach ($failures as $failure) {
-                $errorMessages[] = "Row {$failure->row()}: " . implode(', ', $failure->errors());
-            }
-            if (isset($tempPath) && file_exists($tempPath)) unlink($tempPath);
-            if (isset($outputPath) && file_exists($outputPath)) unlink($outputPath);
-            
-            return redirect()->back()->with('error', '❌ Validation failed:<br>' . implode('<br>', array_slice($errorMessages, 0, 20)));
+            return redirect()->route('admin.students.index')->with('success', "✅ Successfully imported $successCount students.");
             
         } catch (\Exception $e) {
-            if (isset($tempPath) && file_exists($tempPath)) unlink($tempPath);
-            if (isset($outputPath) && file_exists($outputPath)) unlink($outputPath);
-            return redirect()->back()->with('error', '❌ Error uploading file: ' . $e->getMessage());
+            DB::rollBack();
+            return redirect()->back()->with('error', '❌ Error: ' . $e->getMessage());
         }
     }
 
@@ -286,42 +264,13 @@ class StudentController extends Controller
      */
     public function destroy(Student $student)
     {
-        try {
-            $studentName = $student->name;
-            $studentId = $student->student_id;
+        $email = $student->email;
+        DB::transaction(function() use ($student, $email) {
             $student->delete();
-            
-            return redirect()->route('admin.students.index')
-                ->with('success', "✅ Student '{$studentName}' ({$studentId}) deleted successfully!");
-                
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', '❌ Error deleting student: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Admin: Download sample Excel template
-     */
-    public function downloadTemplate()
-    {
-        $headers = ['student_id', 'name', 'email', 'year', 'section', 'batch'];
+            User::where('email', $email)->delete(); // Clean up user account too
+        });
         
-        $filename = "student_upload_template.csv";
-        
-        header('Content-Type: text/csv');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
-        header('Pragma: no-cache');
-        header('Expires: 0');
-        
-        $handle = fopen('php://output', 'w');
-        fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
-        fputcsv($handle, $headers);
-        fputcsv($handle, ['STU2025001', 'Abel Shewangizaw', 'abel@mkau.edu.et', '1', 'A', '2025']);
-        fputcsv($handle, ['STU2025002', 'Abyu Eshetie', 'abyu@mkau.edu.et', '1', 'A', '2025']);
-        fputcsv($handle, ['STU2025003', 'Akililu Ayka', 'akililu@mkau.edu.et', '1', 'A', '2025']);
-        
-        fclose($handle);
-        exit;
+        return redirect()->route('admin.students.index')->with('success', "✅ Student deleted successfully!");
     }
 
     /**
@@ -337,20 +286,16 @@ class StudentController extends Controller
                         return $query->where('batch', $batch);
                     })
                     ->when($search, function($query, $search) {
-                        return $query->where('name', 'LIKE', "%{$search}%")
-                                     ->orWhere('student_id', 'LIKE', "%{$search}%");
+                        return $query->where(function($q) use ($search) {
+                            $q->where('name', 'LIKE', "%{$search}%")
+                              ->orWhere('student_id', 'LIKE', "%{$search}%");
+                        });
                     })
                     ->orderBy('year')
                     ->orderBy('name')
-                    ->paginate(15);
+                    ->paginate(20);
         
-        $batches = Student::where('is_active', true)
-                    ->whereNotNull('batch')
-                    ->distinct()
-                    ->pluck('batch')
-                    ->filter()
-                    ->sort()
-                    ->values();
+        $batches = Student::where('is_active', true)->whereNotNull('batch')->distinct()->pluck('batch')->sort()->values();
         
         $stats = [
             'total' => Student::where('is_active', true)->count(),
@@ -363,38 +308,9 @@ class StudentController extends Controller
         return view('staff.students.index', compact('students', 'stats', 'batches', 'batch', 'search'));
     }
     
-    /**
-     * Staff: View single student
-     */
     public function staffShow(Student $student)
     {
         return view('staff.students.show', compact('student'));
-    }
-
-    /**
-     * ===========================================================
-     * STUDENT DASHBOARD METHODS (For logged-in students)
-     * ===========================================================
-     */
-
-    /**
-     * Get the authenticated student
-     */
-    private function getAuthenticatedStudent()
-    {
-        $user = Auth::user();
-        
-        if (!$user) {
-            abort(403, 'Unauthorized access.');
-        }
-        
-        $student = Student::where('email', $user->email)->first();
-        
-        if (!$student) {
-            abort(404, 'Student record not found.');
-        }
-        
-        return $student;
     }
 
     /**
@@ -402,7 +318,7 @@ class StudentController extends Controller
      */
     public function dashboard()
     {
-        $user = Auth::user();
+        $user = auth()->user();
         $student = Student::where('email', $user->email)->first();
         
         if (!$student) {
@@ -411,44 +327,23 @@ class StudentController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'year' => 1,
-                'section' => 'A',
+                'section' => 'N/A',
             ];
         }
         
-        $courses = collect([]);
-        if ($student && isset($student->courses)) {
-            $courses = $student->courses;
-        }
-        
-        $stats = [
-            'total_courses' => $courses->count(),
-            'pending_assignments' => 0,
-            'average_grade' => 0,
-            'total_notices' => 0,
-        ];
-        
-        $recentAssignments = collect([]);
-        $recentNotices = collect([]);
-        $grades = collect([]);
-        
-        return view('student.dashboard', compact('user', 'student', 'courses', 'recentAssignments', 'recentNotices', 'grades', 'stats'));
+        return view('student.dashboard', compact('student'));
     }
 
-    /**
-     * Student Profile
-     */
     public function profile()
     {
-        $student = $this->getAuthenticatedStudent();
+        $student = Student::where('email', auth()->user()->email)->firstOrFail();
         return view('student.profile', compact('student'));
     }
 
-    /**
-     * Update Student Profile
-     */
     public function updateProfile(Request $request)
     {
-        $student = $this->getAuthenticatedStudent();
+        $user = auth()->user();
+        $student = Student::where('email', $user->email)->firstOrFail();
         
         $request->validate([
             'name' => 'required|string|max:255',
@@ -472,228 +367,16 @@ class StudentController extends Controller
         }
 
         $student->update($data);
-        Auth::user()->update(['email' => $request->email, 'name' => $request->name]);
+        $user->update(['email' => $request->email, 'name' => $request->name]);
 
         return redirect()->route('student.profile')->with('success', 'Profile updated successfully!');
     }
 
-    /**
-     * Student Courses
-     */
-    public function courses()
-    {
-        $student = $this->getAuthenticatedStudent();
-        $courses = $student->courses()->withCount(['materials', 'assignments'])->get();
-        
-        return view('student.courses.index', compact('student', 'courses'));
-    }
-
-    /**
-     * Course Details
-     */
-    public function courseDetail(Course $course)
-    {
-        $student = $this->getAuthenticatedStudent();
-        
-        if (!$student->courses()->where('course_id', $course->id)->exists()) {
-            abort(403, 'You are not enrolled in this course.');
-        }
-        
-        $materials = $course->materials()->latest()->get();
-        $assignments = $course->assignments()->where('is_active', true)->get();
-        $notices = $course->notices()->active()->latest()->get();
-        
-        return view('student.courses.show', compact('course', 'materials', 'assignments', 'notices'));
-    }
-
-    /**
-     * Student Grades
-     */
-    public function grades()
-    {
-        $student = $this->getAuthenticatedStudent();
-        
-        $grades = Grade::where('student_id', $student->id)
-            ->with(['course', 'assignment'])
-            ->get()
-            ->groupBy('course_id');
-        
-        $courseAverages = [];
-        foreach ($grades as $courseId => $courseGrades) {
-            $courseAverages[$courseId] = [
-                'average' => $courseGrades->avg('percentage'),
-                'total' => $courseGrades->sum('score'),
-                'count' => $courseGrades->count(),
-                'course' => $courseGrades->first()->course,
-            ];
-        }
-        
-        return view('student.grades', compact('student', 'grades', 'courseAverages'));
-    }
-
-    /**
-     * Course Materials
-     */
-    public function materials(Course $course)
-    {
-        $student = $this->getAuthenticatedStudent();
-        
-        if (!$student->courses()->where('course_id', $course->id)->exists()) {
-            abort(403, 'You are not enrolled in this course.');
-        }
-        
-        $materials = $course->materials()->latest()->paginate(20);
-        
-        return view('student.materials.index', compact('course', 'materials'));
-    }
-
-    /**
-     * Download Course Material
-     */
-    public function downloadMaterial(CourseMaterial $material)
-    {
-        $student = $this->getAuthenticatedStudent();
-        
-        if (!$student->courses()->where('course_id', $material->course_id)->exists()) {
-            abort(403, 'You are not enrolled in this course.');
-        }
-        
-        $material->incrementDownloadCount();
-        
-        return Storage::disk('public')->download($material->file_path, $material->file_name);
-    }
-
-    /**
-     * Student Assignments List
-     */
-    public function assignments(Course $course)
-    {
-        $student = $this->getAuthenticatedStudent();
-        
-        if (!$student->courses()->where('course_id', $course->id)->exists()) {
-            abort(403, 'You are not enrolled in this course.');
-        }
-        
-        $assignments = $course->assignments()
-            ->where('is_active', true)
-            ->with(['submissions' => function($query) use ($student) {
-                $query->where('student_id', $student->id);
-            }])
-            ->orderBy('due_date')
-            ->paginate(20);
-        
-        return view('student.assignments.index', compact('course', 'assignments'));
-    }
-
-    /**
-     * Assignment Detail
-     */
-    public function assignmentDetail(Assignment $assignment)
-    {
-        $student = $this->getAuthenticatedStudent();
-        
-        if (!$student->courses()->where('course_id', $assignment->course_id)->exists()) {
-            abort(403, 'You are not enrolled in this course.');
-        }
-        
-        $submission = AssignmentSubmission::where('assignment_id', $assignment->id)
-            ->where('student_id', $student->id)
-            ->first();
-        
-        return view('student.assignments.show', compact('assignment', 'submission'));
-    }
-
-    /**
-     * Submit Assignment
-     */
-    public function submitAssignment(Request $request, Assignment $assignment)
-    {
-        $student = $this->getAuthenticatedStudent();
-        
-        if (!$student->courses()->where('course_id', $assignment->course_id)->exists()) {
-            abort(403, 'You are not enrolled in this course.');
-        }
-        
-        $existingSubmission = AssignmentSubmission::where('assignment_id', $assignment->id)
-            ->where('student_id', $student->id)
-            ->first();
-            
-        if ($existingSubmission) {
-            return redirect()->back()->with('error', 'You have already submitted this assignment.');
-        }
-        
-        $request->validate([
-            'file' => 'required|file|max:10240',
-            'comments' => 'nullable|string|max:1000',
-        ]);
-
-        $file = $request->file('file');
-        $fileName = $student->student_id . '_' . time() . '_' . $file->getClientOriginalName();
-        $filePath = $file->storeAs('submissions/' . $assignment->id, $fileName, 'public');
-
-        AssignmentSubmission::create([
-            'assignment_id' => $assignment->id,
-            'student_id' => $student->id,
-            'file_path' => $filePath,
-            'file_name' => $file->getClientOriginalName(),
-            'comments' => $request->comments,
-            'submitted_at' => now(),
-            'is_late' => now()->gt($assignment->due_date),
-        ]);
-
-        return redirect()->route('student.assignments.show', $assignment)
-            ->with('success', 'Assignment submitted successfully!');
-    }
-
-    /**
-     * Student Notices
-     */
-    public function notices()
-    {
-        $student = $this->getAuthenticatedStudent();
-        
-        $courses = $student->courses()->pluck('id');
-        
-        $notices = CourseNotice::whereIn('course_id', $courses)
-            ->active()
-            ->with('course')
-            ->latest()
-            ->paginate(20);
-        
-        return view('student.notices.index', compact('notices'));
-    }
-
-    /**
-     * Change Password Form
-     */
     public function showChangePasswordForm()
     {
         return view('student.profile.change-password');
     }
-    
-    /**
-     * All Assignments for Student
-     */
-    public function allAssignments()
-    {
-        $student = $this->getAuthenticatedStudent();
-        $courseIds = $student->courses()->pluck('courses.id');
-        
-        $assignments = Assignment::whereIn('course_id', $courseIds)
-            ->where('is_active', true)
-            ->with('course')
-            ->with(['submissions' => function($query) use ($student) {
-                $query->where('student_id', $student->id);
-            }])
-            ->orderBy('due_date')
-            ->paginate(20);
-        
-        return view('student.assignments.all', compact('student', 'assignments'));
-    }
 
-    /**
-     * Update Password
-     */
     public function updatePassword(Request $request)
     {
         $request->validate([
@@ -701,16 +384,52 @@ class StudentController extends Controller
             'new_password' => 'required|min:8|confirmed',
         ]);
 
-        $user = Auth::user();
+        $user = auth()->user();
 
         if (!Hash::check($request->current_password, $user->password)) {
             return back()->with('error', 'Current password is incorrect.');
         }
 
-        $user->update([
-            'password' => Hash::make($request->new_password)
-        ]);
+        $user->update(['password' => Hash::make($request->new_password)]);
 
         return back()->with('success', 'Password changed successfully!');
+    }
+
+    public function courses()
+    {
+        $student = Student::where('email', auth()->user()->email)->firstOrFail();
+        $courses = $student->courses()->get();
+        return view('student.courses', compact('student', 'courses'));
+    }
+
+    public function grades()
+    {
+        $student = Student::where('email', auth()->user()->email)->firstOrFail();
+        return view('student.grades', compact('student'));
+    }
+
+    public function notices()
+    {
+        $student = Student::where('email', auth()->user()->email)->firstOrFail();
+        return view('student.notices', compact('student'));
+    }
+
+    public function myComplaints()
+    {
+        $user = auth()->user();
+        $student = Student::where('email', $user->email)->first();
+        
+        $complaints = \App\Models\Complaint::where('email', $user->email)
+            ->orWhere('student_id', $student->student_id ?? null)
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+        
+        return view('student.complaints', compact('complaints'));
+    }
+
+    public function allAssignments()
+    {
+        $student = Student::where('email', auth()->user()->email)->firstOrFail();
+        return view('student.assignments.all', compact('student'));
     }
 }

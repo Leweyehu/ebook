@@ -1,296 +1,279 @@
 @extends('layouts.admin')
 
 @section('title', 'Manage Students')
-@section('page-title', 'Student Management')
+@section('page-title', 'Manage Students')
 
 @section('content')
-<!-- Statistics Cards -->
-<div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
-    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1.5rem; border-radius: 10px; text-align: center;">
-        <i class="fas fa-users" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
-        <h3 style="font-size: 2rem;">{{ $stats['total'] ?? 0 }}</h3>
-        <p>Total Students</p>
-    </div>
-    
-    <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 1.5rem; border-radius: 10px; text-align: center;">
-        <i class="fas fa-user-graduate" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
-        <h3 style="font-size: 2rem;">{{ $stats['year1'] ?? 0 }}</h3>
-        <p>Year 1</p>
-    </div>
-    
-    <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 1.5rem; border-radius: 10px; text-align: center;">
-        <i class="fas fa-user-graduate" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
-        <h3 style="font-size: 2rem;">{{ $stats['year2'] ?? 0 }}</h3>
-        <p>Year 2</p>
-    </div>
-    
-    <div style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; padding: 1.5rem; border-radius: 10px; text-align: center;">
-        <i class="fas fa-user-graduate" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
-        <h3 style="font-size: 2rem;">{{ $stats['year3'] ?? 0 }}</h3>
-        <p>Year 3</p>
-    </div>
-    
-    <div style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; padding: 1.5rem; border-radius: 10px; text-align: center;">
-        <i class="fas fa-user-graduate" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
-        <h3 style="font-size: 2rem;">{{ $stats['year4'] ?? 0 }}</h3>
-        <p>Year 4</p>
-    </div>
-</div>
-
-<!-- Page Header with Actions -->
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-    <div>
-        <h2 style="color: #1a2b3c; margin-bottom: 0.5rem;">Student Records</h2>
-        <p style="color: #666;">Manage all students in the department</p>
-    </div>
-    
-    <div style="display: flex; gap: 1rem;">
-        <a href="{{ route('admin.students.template') }}" style="background: #17a2b8; color: white; padding: 0.75rem 1.5rem; border-radius: 5px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem;">
-            <i class="fas fa-download"></i> Download Template
-        </a>
-        <button onclick="document.getElementById('uploadModal').style.display='block'" style="background: #28a745; color: white; padding: 0.75rem 1.5rem; border-radius: 5px; border: none; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-            <i class="fas fa-upload"></i> Bulk Upload Students
-        </button>
-    </div>
-</div>
-
-<!-- Search and Filter Section -->
-<div style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; margin-bottom: 2rem;">
-    <form method="GET" action="{{ route('admin.students.index') }}" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;">
-        <div style="flex: 2; min-width: 200px;">
-            <label style="display: block; margin-bottom: 0.5rem; color: #1a2b3c; font-weight: 500;">Search</label>
-            <input type="text" name="search" class="form-control" placeholder="Search by name, ID, or email..." 
-                   value="{{ request('search') }}" 
-                   style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px;">
+<div class="container">
+    {{-- Statistics Overview --}}
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1.5rem; border-radius: 10px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <i class="fas fa-users" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+            <h3 style="font-size: 2rem; margin: 0;">{{ $stats['total'] ?? 0 }}</h3>
+            <p style="margin: 0; opacity: 0.9;">Total Students</p>
         </div>
         
-        <div style="flex: 1; min-width: 150px;">
-            <label style="display: block; margin-bottom: 0.5rem; color: #1a2b3c; font-weight: 500;">Filter by Batch</label>
-            <select name="batch" class="form-control" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px;">
-                <option value="">All Batches</option>
-                @foreach($batches as $batchOption)
-                    <option value="{{ $batchOption }}" {{ request('batch') == $batchOption ? 'selected' : '' }}>
-                        {{ $batchOption }}
-                    </option>
-                @endforeach
-            </select>
+        <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 1.5rem; border-radius: 10px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <i class="fas fa-user-graduate" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+            <h3 style="font-size: 2rem; margin: 0;">{{ $stats['year1'] ?? 0 }}</h3>
+            <p style="margin: 0; opacity: 0.9;">Year 1</p>
         </div>
         
-        <div style="flex: 0 0 auto;">
-            <button type="submit" style="background: #0a2342; color: white; padding: 0.75rem 2rem; border: none; border-radius: 5px; cursor: pointer; font-weight: 500;">
-                <i class="fas fa-search"></i> Filter
+        <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 1.5rem; border-radius: 10px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <i class="fas fa-user-graduate" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+            <h3 style="font-size: 2rem; margin: 0;">{{ $stats['year2'] ?? 0 }}</h3>
+            <p style="margin: 0; opacity: 0.9;">Year 2</p>
+        </div>
+        
+        <div style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; padding: 1.5rem; border-radius: 10px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <i class="fas fa-user-graduate" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+            <h3 style="font-size: 2rem; margin: 0;">{{ $stats['year3'] ?? 0 }}</h3>
+            <p style="margin: 0; opacity: 0.9;">Year 3</p>
+        </div>
+        
+        <div style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; padding: 1.5rem; border-radius: 10px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <i class="fas fa-user-graduate" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+            <h3 style="font-size: 2rem; margin: 0;">{{ $stats['year4'] ?? 0 }}</h3>
+            <p style="margin: 0; opacity: 0.9;">Year 4</p>
+        </div>
+    </div>
+
+    {{-- Filter Bar --}}
+    <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; margin-bottom: 2rem; border: 1px solid #e9ecef;">
+        <form method="GET" action="{{ route('admin.students.index') }}" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;">
+            <div style="flex: 2; min-width: 200px;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.85rem;">Search Records</label>
+                <input type="text" name="search" placeholder="Search by name, ID, or email..." 
+                       value="{{ request('search') }}" 
+                       style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px;">
+            </div>
+            <div style="flex: 1; min-width: 150px;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.85rem;">Filter Batch</label>
+                <select name="batch" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px; background: white;">
+                    <option value="">All Batches</option>
+                    @if(isset($batches))
+                        @foreach($batches as $batchOption)
+                            <option value="{{ $batchOption }}" {{ request('batch') == $batchOption ? 'selected' : '' }}>
+                                {{ $batchOption }}
+                            </option>
+                        @endforeach
+                    @endif
+                </select>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+                <button type="submit" style="background: #ffc107; color: #1a2b3c; padding: 0.75rem 1.5rem; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
+                    <i class="fas fa-filter"></i> Apply
+                </button>
+                <a href="{{ route('admin.students.index') }}" style="background: #6c757d; color: white; padding: 0.75rem 1.5rem; border-radius: 5px; text-decoration: none; font-size: 0.9rem;">
+                    Reset
+                </a>
+            </div>
+        </form>
+    </div>
+
+    {{-- Header Action Buttons --}}
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <h2 style="color: #1a2b3c; margin: 0; font-size: 1.5rem;">Student Directory</h2>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <button type="button" onclick="openIndividualModal()" style="background: #007bff; color: white; padding: 0.75rem 1.25rem; border: none; border-radius: 5px; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; transition: 0.3s;">
+                <i class="fas fa-plus"></i> Add Student
             </button>
-            <a href="{{ route('admin.students.index') }}" style="display: inline-block; background: #6c757d; color: white; padding: 0.75rem 2rem; border-radius: 5px; text-decoration: none; margin-left: 0.5rem;">
-                <i class="fas fa-sync-alt"></i> Reset
+
+            <button type="button" onclick="openBulkUploadModal()" style="background: #28a745; color: white; padding: 0.75rem 1.25rem; border: none; border-radius: 5px; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; transition: 0.3s;">
+                <i class="fas fa-file-upload"></i> Bulk Import
+            </button>
+            
+            <a href="{{ route('admin.students.template') }}" style="background: #17a2b8; color: white; padding: 0.75rem 1.25rem; border-radius: 5px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.9rem;">
+                <i class="fas fa-file-download"></i> Template
             </a>
         </div>
-    </form>
-    
-    @if(request('search') || request('batch'))
-        <div style="margin-top: 1rem; padding: 0.75rem; background: #e9ecef; border-radius: 5px;">
-            <i class="fas fa-info-circle"></i> 
-            Showing filtered results:
-            @if(request('search')) <strong>"{{ request('search') }}"</strong> @endif
-            @if(request('batch')) <strong>Batch {{ request('batch') }}</strong> @endif
-            <a href="{{ route('admin.students.index') }}" style="margin-left: 1rem; color: #0a2342;">Clear filters</a>
-        </div>
-    @endif
-</div>
+    </div>
 
-<!-- Students Table -->
-<div style="background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); overflow-x: auto;">
-    <table style="width: 100%; border-collapse: collapse;">
-        <thead style="background: #1a2b3c; color: white;">
-            <tr>
-                <th style="padding: 1rem; text-align: left;">#</th>
-                <th style="padding: 1rem; text-align: left;">Student ID</th>
-                <th style="padding: 1rem; text-align: left;">Name</th>
-                <th style="padding: 1rem; text-align: left;">Email</th>
-                <th style="padding: 1rem; text-align: left;">Year</th>
-                <th style="padding: 1rem; text-align: left;">Section</th>
-                <th style="padding: 1rem; text-align: left;">Batch</th>
-                <th style="padding: 1rem; text-align: left;">Status</th>
-                <th style="padding: 1rem; text-align: left;">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($students as $index => $student)
-            <tr style="border-bottom: 1px solid #e9ecef; transition: background 0.2s ease;">
-                <td style="padding: 1rem;">{{ $students->firstItem() + $index }}</td>
-                <td style="padding: 1rem;"><code style="background: #f8f9fa; padding: 0.25rem 0.5rem; border-radius: 3px;">{{ $student->student_id }}</code></td>
-                <td style="padding: 1rem;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <div style="width: 35px; height: 35px; background: #0a2342; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
-                            {{ substr($student->name, 0, 1) }}
-                        </div>
-                        <strong>{{ $student->name }}</strong>
-                    </div>
-                </td>
-                <td style="padding: 1rem;">{{ $student->email }}</td>
-                <td style="padding: 1rem;">
-                    <span style="background: #e9ecef; color: #1a2b3c; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem;">
-                        Year {{ $student->year }}
-                    </span>
-                </td>
-                <td style="padding: 1rem;">{{ $student->section ?? 'N/A' }}</td>
-                <td style="padding: 1rem;">{{ $student->batch ?? 'N/A' }}</td>
-                <td style="padding: 1rem;">
-                    @if($student->is_active)
-                        <span style="background: #28a745; color: white; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.75rem;">Active</span>
-                    @else
-                        <span style="background: #dc3545; color: white; padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.75rem;">Inactive</span>
-                    @endif
-                </td>
-                <td style="padding: 1rem;">
-                    <div style="display: flex; gap: 0.5rem;">
-                        <a href="#" style="background: #ffc107; color: #1a2b3c; padding: 0.25rem 0.75rem; border-radius: 3px; text-decoration: none; font-size: 0.85rem;">
-                            <i class="fas fa-edit"></i> Edit
-                        </a>
-                        <form action="{{ route('admin.students.destroy', $student) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete student: {{ $student->name }}?');" style="display: inline;">
+    {{-- Data Table --}}
+    <div style="background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid #eee;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead style="background: #1a2b3c; color: white;">
+                <tr>
+                    <th style="padding: 1.2rem 1rem; text-align: left;">Student ID</th>
+                    <th style="padding: 1.2rem 1rem; text-align: left;">Name</th>
+                    <th style="padding: 1.2rem 1rem; text-align: left;">Email</th>
+                    <th style="padding: 1.2rem 1rem; text-align: left;">Year</th>
+                    <th style="padding: 1.2rem 1rem; text-align: left;">Section</th>
+                    <th style="padding: 1.2rem 1rem; text-align: left;">Batch</th>
+                    <th style="padding: 1.2rem 1rem; text-align: center;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($students as $student)
+                <tr style="border-bottom: 1px solid #f1f1f1; transition: 0.2s;" onmouseover="this.style.background='#f8f9ff'" onmouseout="this.style.background='transparent'">
+                    <td style="padding: 1rem;"><code style="color: #d63384; font-weight: bold;">{{ $student->student_id }}</code></td>
+                    <td style="padding: 1rem;"><strong>{{ $student->name }}</strong></td>
+                    <td style="padding: 1rem; color: #666;">{{ $student->email }}</td>
+                    <td style="padding: 1rem;">
+                        <span style="background: #e9ecef; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; color: #495057;">
+                            Year {{ $student->year }}
+                        </span>
+                    </td>
+                    <td style="padding: 1rem;">{{ $student->section ?? '—' }}</td>
+                    <td style="padding: 1rem;">{{ $student->batch ?? '—' }}</td>
+                    <td style="padding: 1rem; text-align: center;">
+                        <form action="{{ route('admin.students.destroy', $student->id) }}" method="POST" onsubmit="return confirm('Delete student {{ $student->name }}? This cannot be undone.');">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" style="background: #dc3545; color: white; border: none; padding: 0.25rem 0.75rem; border-radius: 3px; cursor: pointer; font-size: 0.85rem;">
-                                <i class="fas fa-trash"></i> Delete
+                            <button type="submit" style="background: none; border: 1px solid #dc3545; color: #dc3545; padding: 0.4rem 0.75rem; border-radius: 4px; cursor: pointer; transition: 0.3s;" onmouseover="this.style.background='#dc3545'; this.style.color='white'" onmouseout="this.style.background='none'; this.style.color='#dc3545'">
+                                <i class="fas fa-trash-alt"></i>
                             </button>
                         </form>
-                    </div>
-                </td>
-            </tr>
-            @empty
-            <tr>
-                <td colspan="9" style="padding: 3rem; text-align: center; color: #6c757d;">
-                    <i class="fas fa-user-graduate" style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i>
-                    <p>No students found. Upload a file to get started.</p>
-                    <button onclick="document.getElementById('uploadModal').style.display='block'" style="margin-top: 1rem; background: #28a745; color: white; padding: 0.5rem 1rem; border: none; border-radius: 5px; cursor: pointer;">
-                        <i class="fas fa-upload"></i> Upload Students
-                    </button>
-                </td>
-            </tr>
-            @endforelse
-        </tbody>
-    </table>
-</div>
-
-<!-- Pagination -->
-@if($students->hasPages())
-<div style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-    <div style="color: #6c757d;">
-        Showing {{ $students->firstItem() }} to {{ $students->lastItem() }} of {{ $students->total() }} students
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="7" style="padding: 4rem; text-align: center; color: #adb5bd;">
+                        <i class="fas fa-folder-open" style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i>
+                        <p style="font-size: 1.1rem;">No students found in the database.</p>
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
-    <div>
-        <style>
-            .pagination {
-                display: flex;
-                gap: 0.5rem;
-                list-style: none;
-                flex-wrap: wrap;
-                margin: 0;
-                padding: 0;
-            }
-            
-            .pagination li a,
-            .pagination li span {
-                display: block;
-                padding: 0.5rem 1rem;
-                background: white;
-                border: 1px solid #dee2e6;
-                border-radius: 5px;
-                color: #0a2342;
-                text-decoration: none;
-                transition: all 0.3s;
-            }
-            
-            .pagination li.active span {
-                background: #0a2342;
-                color: white;
-                border-color: #0a2342;
-            }
-            
-            .pagination li a:hover {
-                background: #f8f9fa;
-                border-color: #0a2342;
-            }
-            
-            .pagination li.disabled span {
-                color: #6c757d;
-                cursor: not-allowed;
-            }
-        </style>
+
+    <div style="margin-top: 2rem;">
         {{ $students->appends(request()->query())->links() }}
     </div>
 </div>
-@endif
 
-<!-- Upload Modal -->
-<div id="uploadModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
-    <div style="background: white; width: 500px; max-width: 90%; margin: 100px auto; padding: 2rem; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.2);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-            <h3 style="color: #1a2b3c;">Bulk Upload Students</h3>
-            <button onclick="document.getElementById('uploadModal').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+{{-- MODAL: Bulk Upload --}}
+<div id="bulkUploadModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+    <div style="background: white; border-radius: 12px; width: 90%; max-width: 500px; padding: 2.5rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #eee; padding-bottom: 1rem;">
+            <h3 style="margin: 0; color: #1a2b3c;">Bulk Import Students</h3>
+            <button type="button" onclick="closeBulkUploadModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #999;">&times;</button>
         </div>
         
-        <form action="{{ route('admin.students.upload') }}" method="POST" enctype="multipart/form-data">
+        <form id="bulkUploadForm" method="POST" action="{{ route('admin.students.upload') }}" enctype="multipart/form-data">
             @csrf
             <div style="margin-bottom: 1.5rem;">
-                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Select Excel/CSV File</label>
-                <input type="file" name="file" accept=".xlsx,.xls,.csv" required style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px;">
-                <p style="color: #666; font-size: 0.85rem; margin-top: 0.5rem;">
-                    <i class="fas fa-info-circle"></i> Upload file with columns: student_id, name, email, year, section, batch
-                </p>
-                <p style="color: #28a745; font-size: 0.85rem; margin-top: 0.5rem;">
-                    <i class="fas fa-download"></i> 
-                    <a href="{{ route('admin.students.template') }}" style="color: #28a745;">Download template</a> to see the correct format
+                <label style="display: block; margin-bottom: 0.75rem; font-weight: 600; color: #444;">Select CSV File</label>
+                <input type="file" name="student_file" accept=".csv" required style="width: 100%; padding: 0.75rem; border: 2px dashed #ddd; border-radius: 8px; cursor: pointer;">
+            </div>
+            
+            <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 1rem; border-radius: 4px; margin-bottom: 1.5rem;">
+                <p style="margin: 0; font-size: 0.85rem; color: #856404; line-height: 1.5;">
+                    <i class="fas fa-info-circle"></i> Ensure your CSV follows the template format. <br>
+                    <strong>Required:</strong> student_id, name, email, year.
                 </p>
             </div>
             
             <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-                <button type="button" onclick="document.getElementById('uploadModal').style.display='none'" style="background: #6c757d; color: white; padding: 0.5rem 1.5rem; border: none; border-radius: 5px; cursor: pointer;">Cancel</button>
-                <button type="submit" style="background: #28a745; color: white; padding: 0.5rem 1.5rem; border: none; border-radius: 5px; cursor: pointer;">
-                    <i class="fas fa-upload"></i> Upload
+                <button type="button" onclick="closeBulkUploadModal()" style="background: #e9ecef; color: #495057; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Cancel</button>
+                <button type="submit" style="background: #28a745; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 6px rgba(40, 167, 69, 0.2);">
+                    <i class="fas fa-upload"></i> Start Import
                 </button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- JavaScript for Modal -->
+{{-- MODAL: Individual Student --}}
+<div id="individualStudentModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+    <div style="background: white; border-radius: 12px; width: 90%; max-width: 550px; padding: 2.5rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #eee; padding-bottom: 1rem;">
+            <h3 style="margin: 0; color: #1a2b3c;">New Student Enrollment</h3>
+            <button type="button" onclick="closeIndividualModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #999;">&times;</button>
+        </div>
+        
+        <form action="{{ route('admin.students.store') }}" method="POST">
+            @csrf
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.25rem;">
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: #555;">Student ID *</label>
+                    <input type="text" name="student_id" placeholder="e.g. STU123" required style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px;">
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: #555;">Full Name *</label>
+                    <input type="text" name="name" placeholder="John Doe" required style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px;">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1.25rem;">
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: #555;">Institutional Email *</label>
+                <input type="email" name="email" placeholder="example@university.edu" required style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px;">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: #555;">Year Level *</label>
+                    <select name="year" required style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px; background: white;">
+                        <option value="1">Year 1</option>
+                        <option value="2">Year 2</option>
+                        <option value="3">Year 3</option>
+                        <option value="4">Year 4</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: #555;">Section</label>
+                    <input type="text" name="section" placeholder="A" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px;">
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: #555;">Batch</label>
+                    <input type="text" name="batch" placeholder="2024" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px;">
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; border-top: 1px solid #eee; padding-top: 1.5rem;">
+                <button type="button" onclick="closeIndividualModal()" style="background: #e9ecef; color: #495057; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Cancel</button>
+                <button type="submit" style="background: #007bff; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 6px rgba(0, 123, 255, 0.2);">
+                    Save Student
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{{-- Scripts --}}
 <script>
-    // Close modal when clicking outside
-    window.onclick = function(event) {
-        const modal = document.getElementById('uploadModal');
-        if (event.target == modal) {
-            modal.style.display = 'none';
-        }
-    }
+    function openBulkUploadModal() { document.getElementById('bulkUploadModal').style.display = 'flex'; }
+    function closeBulkUploadModal() { document.getElementById('bulkUploadModal').style.display = 'none'; }
     
-    // Auto-hide success/error messages after 5 seconds
-    setTimeout(function() {
-        const messages = document.querySelectorAll('[style*="position: fixed; bottom: 20px; right: 20px;"]');
-        messages.forEach(function(message) {
-            message.style.opacity = '0';
-            setTimeout(function() {
-                message.style.display = 'none';
-            }, 500);
-        });
-    }, 5000);
+    function openIndividualModal() { document.getElementById('individualStudentModal').style.display = 'flex'; }
+    function closeIndividualModal() { document.getElementById('individualStudentModal').style.display = 'none'; }
+    
+    // Close modals when clicking outside
+    window.onclick = function(event) {
+        if (event.target === document.getElementById('bulkUploadModal')) closeBulkUploadModal();
+        if (event.target === document.getElementById('individualStudentModal')) closeIndividualModal();
+    }
 </script>
 
-<!-- Success/Error Messages -->
+{{-- Flash Messaging --}}
 @if(session('success'))
-<div style="position: fixed; bottom: 20px; right: 20px; background: #28a745; color: white; padding: 1rem; border-radius: 5px; box-shadow: 0 3px 10px rgba(0,0,0,0.2); z-index: 1001; transition: opacity 0.5s;">
-    <i class="fas fa-check-circle"></i> {!! session('success') !!}
+<div class="alert-box" style="position: fixed; bottom: 20px; right: 20px; background: #28a745; color: white; padding: 1.25rem; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2); z-index: 10001; max-width: 450px; border-left: 5px solid #1e7e34;">
+    <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
+        <i class="fas fa-check-circle" style="margin-top: 4px;"></i>
+        <div>{!! session('success') !!}</div>
+    </div>
 </div>
 @endif
 
 @if(session('error'))
-<div style="position: fixed; bottom: 20px; right: 20px; background: #dc3545; color: white; padding: 1rem; border-radius: 5px; box-shadow: 0 3px 10px rgba(0,0,0,0.2); z-index: 1001; transition: opacity 0.5s;">
-    <i class="fas fa-exclamation-circle"></i> {!! session('error') !!}
+<div class="alert-box" style="position: fixed; bottom: 20px; right: 20px; background: #dc3545; color: white; padding: 1.25rem; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2); z-index: 10001; max-width: 450px; border-left: 5px solid #bd2130;">
+    <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
+        <i class="fas fa-exclamation-triangle" style="margin-top: 4px;"></i>
+        <div>{!! session('error') !!}</div>
+    </div>
 </div>
 @endif
 
-@if(session('warning'))
-<div style="position: fixed; bottom: 20px; right: 20px; background: #ffc107; color: #1a2b3c; padding: 1rem; border-radius: 5px; box-shadow: 0 3px 10px rgba(0,0,0,0.2); z-index: 1001; transition: opacity 0.5s;">
-    <i class="fas fa-exclamation-triangle"></i> {!! session('warning') !!}
-</div>
-@endif
+<script>
+    setTimeout(function() {
+        const alerts = document.querySelectorAll('.alert-box');
+        alerts.forEach(el => {
+            el.style.transition = 'all 0.5s ease';
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            setTimeout(() => el.remove(), 500);
+        });
+    }, 5000);
+</script>
 @endsection

@@ -473,9 +473,6 @@
             CS Department Assistant
         </h2>
         <p>Your guide to Computer Science at Mekdela Amba University</p>
-        <div class="status-badge">
-            <i class="fas fa-circle" style="font-size: 0.6rem;"></i> Online
-        </div>
     </div>
     
     <div class="chat-messages" id="chatMessages">

@@ -105,9 +105,36 @@
                     @endif
                 </td>
                 <td style="padding: 1rem;">
-                    <a href="{{ route('admin.complaints.show', $complaint) }}" style="background: #17a2b8; color: white; padding: 0.5rem 1rem; border-radius: 5px; text-decoration: none; display: inline-block;">
-                        <i class="fas fa-eye"></i> View
-                    </a>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <a href="{{ route('admin.complaints.show', $complaint) }}" style="background: #17a2b8; color: white; padding: 0.5rem 0.8rem; border-radius: 5px; text-decoration: none; display: inline-block; font-size: 0.85rem;">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                        
+                        @if($complaint->status === 'pending')
+                            <form action="{{ route('admin.complaints.approve', $complaint) }}" method="POST" style="display: inline;">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit" style="background: #28a745; color: white; border: none; padding: 0.5rem 0.8rem; border-radius: 5px; cursor: pointer; font-size: 0.85rem;" onclick="return confirm('Approve this complaint?')">
+                                    <i class="fas fa-check"></i> Approve
+                                </button>
+                            </form>
+                            <form action="{{ route('admin.complaints.reject', $complaint) }}" method="POST" style="display: inline;">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit" style="background: #dc3545; color: white; border: none; padding: 0.5rem 0.8rem; border-radius: 5px; cursor: pointer; font-size: 0.85rem;" onclick="return confirm('Reject this complaint?')">
+                                    <i class="fas fa-times"></i> Reject
+                                </button>
+                            </form>
+                        @endif
+                        
+                        <form action="{{ route('admin.complaints.destroy', $complaint) }}" method="POST" onsubmit="return confirm('Delete this complaint?');" style="display: inline;">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" style="background: #dc3545; color: white; border: none; padding: 0.5rem 0.8rem; border-radius: 5px; cursor: pointer; font-size: 0.85rem;">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </form>
+                    </div>
                 </td>
             </tr>
             @empty

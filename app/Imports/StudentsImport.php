@@ -15,6 +15,8 @@ use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\SkipsFailures;
 use Maatwebsite\Excel\Validators\Failure;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class StudentsImport implements 
     ToModel, 
@@ -31,6 +33,7 @@ class StudentsImport implements
     private $successfulRows = 0;
     private $failedRows = 0;
     private $debug = [];
+    private $errors = [];
 
     /**
     * @param array $row
@@ -47,9 +50,11 @@ class StudentsImport implements
         
         // Check if required fields exist
         if (!isset($row['student_id']) || !isset($row['name']) || !isset($row['email']) || !isset($row['year'])) {
-            Log::error('Missing required fields', $row);
+            $errorMsg = 'Row ' . $this->rows . ': Missing required fields (student_id, name, email, year)';
+            Log::error($errorMsg, $row);
             $this->failedRows++;
-            $this->debug[] = 'Row ' . $this->rows . ': Missing required fields';
+            $this->errors[] = $errorMsg;
+            $this->debug[] = $errorMsg;
             return null;
         }
 
@@ -59,9 +64,11 @@ class StudentsImport implements
                                   ->first();
 
         if ($existingStudent) {
-            Log::warning('Student already exists', ['student_id' => $row['student_id'], 'email' => $row['email']]);
+            $errorMsg = 'Row ' . $this->rows . ': Student already exists (ID: ' . $row['student_id'] . ', Email: ' . $row['email'] . ')';
+            Log::warning($errorMsg);
             $this->failedRows++;
-            $this->debug[] = 'Row ' . $this->rows . ': Student already exists (ID: ' . $row['student_id'] . ')';
+            $this->errors[] = $errorMsg;
+            $this->debug[] = $errorMsg;
             return null;
         }
 
@@ -69,11 +76,13 @@ class StudentsImport implements
             // Ensure year is integer
             $year = (int)$row['year'];
             
-            // Validate year is between 1-4
-            if ($year < 1 || $year > 4) {
-                Log::error('Invalid year value', ['year' => $row['year']]);
+            // Validate year is between 1-5 (updated to 5 years)
+            if ($year < 1 || $year > 5) {
+                $errorMsg = 'Row ' . $this->rows . ': Year must be 1,2,3,4,5 (got: ' . $row['year'] . ')';
+                Log::error($errorMsg);
                 $this->failedRows++;
-                $this->debug[] = 'Row ' . $this->rows . ': Year must be 1,2,3,4 (got: ' . $row['year'] . ')';
+                $this->errors[] = $errorMsg;
+                $this->debug[] = $errorMsg;
                 return null;
             }
             
@@ -83,32 +92,51 @@ class StudentsImport implements
                 $batch = (string)$batch; // Convert to string
             }
             
+            // Handle section
+            $section = isset($row['section']) ? trim($row['section']) : null;
+            if ($section !== null && is_numeric($section)) {
+                $section = (string)$section;
+            }
+            
+            // Generate a random password for the student (if you have authentication)
+            $password = Str::random(10);
+            
             $student = new Student([
                 'student_id' => trim($row['student_id']),
                 'name'       => trim($row['name']),
                 'email'      => trim($row['email']),
+                'phone'      => isset($row['phone']) ? trim($row['phone']) : null,
+                'program'    => isset($row['program']) ? trim($row['program']) : 'Computer Science',
                 'year'       => $year,
-                'section'    => isset($row['section']) ? trim($row['section']) : null,
+                'section'    => $section,
                 'batch'      => $batch,
-                'is_active'  => true,
+                'address'    => isset($row['address']) ? trim($row['address']) : null,
+                'status'     => 'active',
+                // 'password' => Hash::make($password), // Uncomment if you have authentication
             ]);
             
             $student->save(); // Explicitly save to catch any errors
             
             $this->successfulRows++;
-            Log::info('Student created successfully', ['student_id' => $row['student_id'], 'id' => $student->id]);
-            $this->debug[] = 'Row ' . $this->rows . ': Success - ' . $row['student_id'];
+            Log::info('Student created successfully', [
+                'student_id' => $row['student_id'], 
+                'id' => $student->id,
+                'email' => $row['email']
+            ]);
+            $this->debug[] = 'Row ' . $this->rows . ': SUCCESS - ' . $row['student_id'] . ' (' . $row['name'] . ')';
             
             return $student;
             
         } catch (\Exception $e) {
+            $errorMsg = 'Row ' . $this->rows . ': Database Error - ' . $e->getMessage();
             Log::error('Error creating student: ' . $e->getMessage(), [
                 'row' => $row,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
             $this->failedRows++;
-            $this->debug[] = 'Row ' . $this->rows . ': Error - ' . $e->getMessage();
+            $this->errors[] = $errorMsg;
+            $this->debug[] = $errorMsg;
             return null;
         }
     }
@@ -118,10 +146,13 @@ class StudentsImport implements
         return [
             'student_id' => 'required|string|max:255',
             'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'year' => 'required|integer|min:1|max:4',
+            'email' => 'required|email|max:255|unique:students,email',
+            'year' => 'required|integer|min:1|max:5',
             'section' => 'nullable|string|max:10',
-            'batch' => 'nullable|string|max:10', // Now accepts strings
+            'batch' => 'nullable|string|max:10',
+            'phone' => 'nullable|string|max:20',
+            'program' => 'nullable|string|max:100',
+            'address' => 'nullable|string|max:500',
         ];
     }
 
@@ -132,12 +163,14 @@ class StudentsImport implements
     {
         return [
             'student_id.required' => 'Student ID is required',
+            'student_id.max' => 'Student ID must not exceed 255 characters',
             'name.required' => 'Student name is required',
             'email.required' => 'Email address is required',
             'email.email' => 'Please enter a valid email address',
+            'email.unique' => 'This email address is already registered',
             'year.required' => 'Year of study is required',
-            'year.min' => 'Year must be between 1 and 4',
-            'year.max' => 'Year must be between 1 and 4',
+            'year.min' => 'Year must be between 1 and 5',
+            'year.max' => 'Year must be between 1 and 5',
             'batch.string' => 'Batch must be a valid year (e.g., 2016)',
         ];
     }
@@ -147,9 +180,21 @@ class StudentsImport implements
      */
     public function prepareForValidation($data, $index)
     {
+        // Trim all string values
+        foreach ($data as $key => $value) {
+            if (is_string($value)) {
+                $data[$key] = trim($value);
+            }
+        }
+        
         // Convert batch to string if it's numeric
         if (isset($data['batch']) && is_numeric($data['batch'])) {
             $data['batch'] = (string)$data['batch'];
+        }
+        
+        // Convert section to string if it's numeric
+        if (isset($data['section']) && is_numeric($data['section'])) {
+            $data['section'] = (string)$data['section'];
         }
         
         return $data;
@@ -163,6 +208,7 @@ class StudentsImport implements
         foreach ($failures as $failure) {
             $this->failedRows++;
             $errorMsg = 'Row ' . $failure->row() . ': ' . implode(', ', $failure->errors());
+            $this->errors[] = $errorMsg;
             $this->debug[] = $errorMsg;
             
             Log::warning('Import validation failed', [
@@ -204,6 +250,28 @@ class StudentsImport implements
     public function getDebug(): array
     {
         return $this->debug;
+    }
+
+    /**
+     * Get error list
+     */
+    public function getErrors(): array
+    {
+        return $this->errors;
+    }
+
+    /**
+     * Get summary of import
+     */
+    public function getSummary(): array
+    {
+        return [
+            'total_rows' => $this->rows,
+            'successful' => $this->successfulRows,
+            'failed' => $this->failedRows,
+            'errors' => $this->errors,
+            'debug' => $this->debug,
+        ];
     }
 
     /**

@@ -65,6 +65,69 @@ class User extends Authenticatable
         return null;
     }
 
+    // ========== DOCUMENT SUBMISSION SYSTEM RELATIONSHIPS ==========
+
+    /**
+     * Get all document submissions made by this user.
+     */
+    public function documentSubmissions()
+    {
+        return $this->hasMany(DocumentSubmission::class)->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Get pending document submissions for this user.
+     */
+    public function pendingDocumentSubmissions()
+    {
+        return $this->documentSubmissions()->where('status', 'pending');
+    }
+
+    /**
+     * Get approved document submissions for this user.
+     */
+    public function approvedDocumentSubmissions()
+    {
+        return $this->documentSubmissions()->where('status', 'approved');
+    }
+
+    /**
+     * Get rejected document submissions for this user.
+     */
+    public function rejectedDocumentSubmissions()
+    {
+        return $this->documentSubmissions()->where('status', 'rejected');
+    }
+
+    /**
+     * Get total number of document submissions.
+     */
+    public function getTotalDocumentSubmissionsAttribute()
+    {
+        return $this->documentSubmissions()->count();
+    }
+
+    /**
+     * Get document submission statistics.
+     */
+    public function getDocumentSubmissionStatsAttribute()
+    {
+        return [
+            'total' => $this->documentSubmissions()->count(),
+            'pending' => $this->documentSubmissions()->where('status', 'pending')->count(),
+            'approved' => $this->documentSubmissions()->where('status', 'approved')->count(),
+            'rejected' => $this->documentSubmissions()->where('status', 'rejected')->count(),
+        ];
+    }
+
+    /**
+     * Get latest document submissions.
+     */
+    public function getLatestDocumentSubmissionsAttribute()
+    {
+        return $this->documentSubmissions()->limit(5)->get();
+    }
+
     // ========== CHAT SYSTEM RELATIONSHIPS ==========
 
     /**

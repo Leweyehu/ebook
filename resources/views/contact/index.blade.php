@@ -5,7 +5,7 @@
 @section('content')
 <div class="page-header">
     <div class="container">
-        <h1>Contact Us</h1>
+        <h1>User Contact Support</h1>
         <p>Get in touch with the Department of Computer Science</p>
     </div>
 </div>
@@ -29,7 +29,7 @@
                     </div>
                     <div>
                         <h3 style="color: #1a2b3c; margin-bottom: 0.3rem;">Address</h3>
-                        <p style="color: #6c757d;">Mekedela Amba University<br>South Wollo, Ethiopia</p>
+                        <p style="color: #6c757d;">Mekedela Amba University<br>Gimba, Ethiopia</p>
                     </div>
                 </div>
 
@@ -79,7 +79,9 @@
 
         <!-- Contact Form -->
         <div style="background: white; border-radius: 15px; padding: 2rem; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
-            <h2 style="color: #1a2b3c; margin-bottom: 2rem;">Send us a Message</h2>
+            <h2 style="color: #1a2b3c; margin-bottom: 2rem;">Please enter the following information so that we may help you.
+
+</h2>
             
             <form action="{{ route('contact.store') }}" method="POST">
                 @csrf

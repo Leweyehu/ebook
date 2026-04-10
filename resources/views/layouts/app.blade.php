@@ -91,20 +91,21 @@
         }
         
         .logo-text {
-            color: white;
-            font-size: 1.1rem;
-            font-weight: 600;
+            color: #FDF5E6;
+            font-size: 0.8rem;
+            font-weight: 750;
             line-height: 1.2;
             letter-spacing: 0.3px;
         }
         
         .logo-text span {
-            font-size: 0.8rem;
+            font-size: 1.1rem;
             display: block;
             font-weight: 400;
             color: rgba(255,255,255,0.9);
             letter-spacing: 0.3px;
             margin-top: 2px;
+            color: white;
         }
         
         /* Fallback Logo Styles */
@@ -197,7 +198,7 @@
             border-radius: 3px 3px 0 0;
         }
         
-        /* Dropdown Styles */
+        /* Dropdown Styles - Fix for click/hover */
         .dropdown {
             position: relative;
         }
@@ -206,6 +207,7 @@
             display: flex;
             align-items: center;
             gap: 5px;
+            cursor: pointer;
         }
         
         .dropdown-toggle i {
@@ -213,8 +215,7 @@
             transition: transform 0.3s ease;
         }
         
-        .dropdown:hover .dropdown-toggle i,
-        .dropdown.active .dropdown-toggle i {
+        .dropdown:hover .dropdown-toggle i {
             transform: rotate(180deg);
         }
         
@@ -233,10 +234,10 @@
             z-index: 1000;
             padding: 0.5rem 0;
             margin-top: 0.5rem;
+            list-style: none;
         }
         
-        .dropdown:hover .dropdown-menu,
-        .dropdown.active .dropdown-menu {
+        .dropdown:hover .dropdown-menu {
             opacity: 1;
             visibility: visible;
             transform: translateY(0);
@@ -244,20 +245,22 @@
         
         .dropdown-menu li {
             width: 100%;
+            list-style: none;
         }
         
         .dropdown-menu a {
-            color: #333;
+            color: #333 !important;
             padding: 0.6rem 1.2rem;
             display: block;
             white-space: nowrap;
             font-size: 0.9rem;
             transition: all 0.2s ease;
+            text-decoration: none;
         }
         
         .dropdown-menu a:hover {
             background: #f8f9fa;
-            color: #ffc107;
+            color: #ffc107 !important;
             padding-left: 1.5rem;
         }
         
@@ -273,47 +276,50 @@
             margin: 0.5rem 0;
         }
         
-        /* Special Buttons */
+        /* Login Link - Matching navigation style */
         .nav-menu .login-link {
-            background: #ffc107;
-            color: #003E72;
-            padding: 0.5rem 1.5rem;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-            transition: all 0.3s ease;
-            text-transform: capitalize;
-            white-space: nowrap;
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 0;
+            transition: all 0.2s ease;
+            position: relative;
+            font-size: 0.95rem;
+            letter-spacing: 0.3px;
+            display: inline-block;
+            background: none;
             border: none;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            white-space: nowrap;
+            text-transform: capitalize;
         }
         
         .nav-menu .login-link:hover {
-            background: #ffca2c;
-            color: #003E72;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+            color: #ffc107;
         }
         
+        /* Dashboard Link - Matching navigation style */
         .nav-menu .dashboard-link {
-            background: #28a745;
             color: white;
-            padding: 0.5rem 1.5rem;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-            transition: all 0.3s ease;
-            text-transform: capitalize;
-            white-space: nowrap;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 0;
+            transition: all 0.2s ease;
+            position: relative;
+            font-size: 0.95rem;
+            letter-spacing: 0.3px;
+            display: inline-block;
+            background: none;
             border: none;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            white-space: nowrap;
+            text-transform: capitalize;
         }
         
         .nav-menu .dashboard-link:hover {
-            background: #34ce57;
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+            color: #ffc107;
         }
         
         .role-badge {
@@ -348,6 +354,7 @@
             background: #ffca2c;
             transform: translateY(-2px);
             box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+            color: #003E72;
         }
         
         .admin-panel-btn i {
@@ -617,6 +624,53 @@
             font-weight: 600;
         }
         
+        /* Alert Styles */
+        .alert {
+            padding: 1rem 1.25rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .btn-close {
+            position: absolute;
+            right: 1rem;
+            top: 0.75rem;
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            cursor: pointer;
+            opacity: 0.5;
+        }
+        
+        .btn-close:hover {
+            opacity: 1;
+        }
+        
         /* Mobile Responsive Styles */
         @media (max-width: 1200px) {
             .nav-menu {
@@ -767,6 +821,7 @@
                 display: none;
                 padding-left: 1rem;
                 margin-top: 0;
+                width: 100%;
             }
             
             .dropdown.active .dropdown-menu {
@@ -774,13 +829,13 @@
             }
             
             .dropdown-menu a {
-                color: white;
+                color: white !important;
                 padding: 0.6rem 1rem;
             }
             
             .dropdown-menu a:hover {
                 background: rgba(255,255,255,0.1);
-                color: #ffc107;
+                color: #ffc107 !important;
                 padding-left: 1.5rem;
             }
             
@@ -792,7 +847,7 @@
             .nav-menu .dashboard-link {
                 margin-left: 0;
                 width: 100%;
-                text-align: center;
+                text-align: left;
                 padding: 0.8rem 1rem;
                 white-space: normal;
             }
@@ -856,22 +911,9 @@
                 width: 100%;
                 justify-content: center;
             }
-            
-            /* Grid adjustments */
-            [style*="grid-template-columns: repeat(3, 1fr)"] {
-                grid-template-columns: 1fr !important;
-            }
-            
-            [style*="grid-template-columns: repeat(4, 1fr)"] {
-                grid-template-columns: repeat(2, 1fr) !important;
-            }
         }
         
         @media (max-width: 576px) {
-            [style*="grid-template-columns: repeat(4, 1fr)"] {
-                grid-template-columns: 1fr !important;
-            }
-            
             .logo a {
                 gap: 8px;
             }
@@ -1039,7 +1081,7 @@
                         </span>
                         <ul class="dropdown-menu">
                             <li><a href="{{ route('about') }}"><i class="fas fa-info-circle"></i> About Us</a></li>
-                            <li><div class="divider"></div></li>
+                            <li><hr class="divider"></li>
                             <li><a href="{{ route('chatbot.index') }}"><i class="fas fa-robot"></i> Chat Assistant</a></li>
                         </ul>
                     </li>
@@ -1056,10 +1098,10 @@
                         </span>
                         <ul class="dropdown-menu">
                             <li><a href="{{ route('students') }}"><i class="fas fa-users"></i> Student Directory</a></li>
-                            <li><div class="divider"></div></li>
+                            <li><hr class="divider"></li>
                             <li><a href="{{ route('alumni.index') }}"><i class="fas fa-graduation-cap"></i> Alumni Directory</a></li>
                             <li><a href="{{ route('alumni.register') }}"><i class="fas fa-user-plus"></i> Alumni Registration</a></li>
-                            <li><div class="divider"></div></li>
+                            <li><hr class="divider"></li>
                             <li><a href="{{ route('complaints.index') }}"><i class="fas fa-file-alt"></i> Submit Complaint</a></li>
                             <li><a href="{{ route('complaints.track-form') }}"><i class="fas fa-search"></i> Track Complaint</a></li>
                         </ul>
@@ -1093,7 +1135,7 @@
                         <li>
                             <form method="POST" action="{{ route('logout') }}" style="display: inline;">
                                 @csrf
-                                <button type="submit" style="background: none; border: none; color: white; cursor: pointer; padding: 0.4rem 0; font-size: 0.8rem;">
+                                <button type="submit" style="background: none; border: none; color: white; cursor: pointer; padding: 0.5rem 0; font-size: 0.9rem; transition: color 0.3s ease; display: flex; align-items: center; gap: 5px;" onmouseover="this.style.color='#ffc107'" onmouseout="this.style.color='white'">
                                     <i class="fas fa-sign-out-alt"></i> Logout
                                 </button>
                             </form>
@@ -1116,6 +1158,35 @@
 
     <!-- Main Content -->
     <main class="main-content">
+        <div class="container">
+            @if(session('success'))
+                <div class="alert alert-success alert-dismissible">
+                    {{ session('success') }}
+                    <button type="button" class="btn-close" onclick="this.parentElement.style.display='none'">&times;</button>
+                </div>
+            @endif
+            
+            @if(session('error'))
+                <div class="alert alert-danger alert-dismissible">
+                    {{ session('error') }}
+                    <button type="button" class="btn-close" onclick="this.parentElement.style.display='none'">&times;</button>
+                </div>
+            @endif
+            
+            @if(session('warning'))
+                <div class="alert alert-warning alert-dismissible">
+                    {{ session('warning') }}
+                    <button type="button" class="btn-close" onclick="this.parentElement.style.display='none'">&times;</button>
+                </div>
+            @endif
+            
+            @if(session('info'))
+                <div class="alert alert-info alert-dismissible">
+                    {{ session('info') }}
+                    <button type="button" class="btn-close" onclick="this.parentElement.style.display='none'">&times;</button>
+                </div>
+            @endif
+        </div>
         @yield('content')
     </main>
 
@@ -1201,12 +1272,15 @@
             dropdowns.forEach(dropdown => {
                 const toggle = dropdown.querySelector('.dropdown-toggle');
                 
-                toggle.addEventListener('click', function(e) {
-                    if (window.innerWidth <= 768) {
-                        e.preventDefault();
-                        dropdown.classList.toggle('active');
-                    }
-                });
+                if (toggle) {
+                    toggle.addEventListener('click', function(e) {
+                        if (window.innerWidth <= 768) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            dropdown.classList.toggle('active');
+                        }
+                    });
+                }
             });
         }
         
@@ -1218,6 +1292,16 @@
             if (navMenu && toggle && !navMenu.contains(event.target) && !toggle.contains(event.target)) {
                 navMenu.classList.remove('active');
             }
+            
+            // Close dropdowns when clicking outside on mobile
+            if (window.innerWidth <= 768) {
+                const dropdowns = document.querySelectorAll('.dropdown');
+                dropdowns.forEach(dropdown => {
+                    if (!dropdown.contains(event.target)) {
+                        dropdown.classList.remove('active');
+                    }
+                });
+            }
         });
         
         // Active link highlighting
@@ -1227,7 +1311,7 @@
             
             navLinks.forEach(link => {
                 const linkPath = link.getAttribute('href');
-                if (linkPath && (currentLocation === linkPath || 
+                if (linkPath && linkPath !== '#' && (currentLocation === linkPath || 
                     (currentLocation === '/' && linkPath === '{{ route('home') }}'))) {
                     link.classList.add('active');
                 }
@@ -1242,7 +1326,10 @@
             if (logo) {
                 logo.addEventListener('error', function() {
                     this.style.display = 'none';
-                    document.getElementById('logo-fallback-container').style.display = 'flex';
+                    const fallback = document.getElementById('logo-fallback-container');
+                    if (fallback) {
+                        fallback.style.display = 'flex';
+                    }
                 });
             }
         });
@@ -1256,6 +1343,18 @@
                 });
             }
         });
+        
+        // Auto-dismiss alerts after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                alert.style.transition = 'opacity 0.5s';
+                alert.style.opacity = '0';
+                setTimeout(function() {
+                    alert.style.display = 'none';
+                }, 500);
+            });
+        }, 5000);
     </script>
     
     @stack('scripts')

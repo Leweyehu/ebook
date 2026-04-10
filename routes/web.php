@@ -25,9 +25,7 @@ Route::get('/about', function () {
     return view('about');
 })->name('about');
 
-Route::get('/programs', function () {
-    return view('programs');
-})->name('programs');
+Route::get('/programs', [App\Http\Controllers\ProgramController::class, 'index'])->name('programs');
 
 Route::get('/program-courses', function () {
     return view('program-courses');
@@ -129,10 +127,13 @@ Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function ()
     Route::patch('/news/{news}/toggle-status', [NewsController::class, 'toggleStatus'])->name('news.toggle-status');
     
     // Student Management
-    Route::get('/students', [StudentController::class, 'admin'])->name('students.index');
-    Route::post('/students/upload', [StudentController::class, 'upload'])->name('students.upload');
-    Route::get('/students/template', [StudentController::class, 'downloadTemplate'])->name('students.template');
-    Route::delete('/students/{student}', [StudentController::class, 'destroy'])->name('students.destroy');
+    Route::prefix('students')->name('students.')->group(function () {
+        Route::get('/', [StudentController::class, 'admin'])->name('index');
+        Route::post('/store', [StudentController::class, 'store'])->name('store');
+        Route::post('/upload', [StudentController::class, 'upload'])->name('upload');
+        Route::get('/template', [StudentController::class, 'downloadTemplate'])->name('template');
+        Route::delete('/{student}', [StudentController::class, 'destroy'])->name('destroy');
+    });
     
     // Contact Messages Management
     Route::get('/contacts', [ContactController::class, 'admin'])->name('contacts.index');
@@ -148,6 +149,8 @@ Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function ()
         Route::get('/{complaint}', [App\Http\Controllers\Admin\ComplaintController::class, 'show'])->name('show');
         Route::post('/{complaint}/respond', [App\Http\Controllers\Admin\ComplaintController::class, 'respond'])->name('respond');
         Route::patch('/{complaint}/status', [App\Http\Controllers\Admin\ComplaintController::class, 'updateStatus'])->name('update-status');
+        Route::patch('/{complaint}/approve', [App\Http\Controllers\Admin\ComplaintController::class, 'approve'])->name('approve');
+        Route::patch('/{complaint}/reject', [App\Http\Controllers\Admin\ComplaintController::class, 'reject'])->name('reject');
         Route::delete('/{complaint}', [App\Http\Controllers\Admin\ComplaintController::class, 'destroy'])->name('destroy');
         Route::post('/bulk-delete', [App\Http\Controllers\Admin\ComplaintController::class, 'bulkDelete'])->name('bulk-delete');
         Route::get('/export/csv', [App\Http\Controllers\Admin\ComplaintController::class, 'export'])->name('export');
@@ -183,6 +186,20 @@ Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function ()
         Route::patch('/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('toggle-status');
     });
     
+    // ========== COURSE STRUCTURE MANAGEMENT ==========
+    Route::prefix('course-structure')->name('course-structure.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\CourseStructureController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Admin\CourseStructureController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Admin\CourseStructureController::class, 'store'])->name('store');
+        Route::get('/upload', [App\Http\Controllers\Admin\CourseStructureController::class, 'uploadForm'])->name('upload-form');
+        Route::post('/upload', [App\Http\Controllers\Admin\CourseStructureController::class, 'upload'])->name('upload');
+        Route::get('/template', [App\Http\Controllers\Admin\CourseStructureController::class, 'downloadTemplate'])->name('template');
+        Route::get('/{courseStructure}/edit', [App\Http\Controllers\Admin\CourseStructureController::class, 'edit'])->name('edit');
+        Route::put('/{courseStructure}', [App\Http\Controllers\Admin\CourseStructureController::class, 'update'])->name('update');
+        Route::delete('/{courseStructure}', [App\Http\Controllers\Admin\CourseStructureController::class, 'destroy'])->name('destroy');
+        Route::patch('/{courseStructure}/toggle-status', [App\Http\Controllers\Admin\CourseStructureController::class, 'toggleStatus'])->name('toggle-status');
+    });
+    
     // ========== COMPREHENSIVE COURSE MANAGEMENT ROUTES ==========
     Route::prefix('courses')->name('courses.')->group(function () {
         // Basic CRUD
@@ -200,7 +217,7 @@ Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function ()
         Route::post('/upload', [App\Http\Controllers\Admin\CourseController::class, 'upload'])->name('upload');
         Route::get('/template', [App\Http\Controllers\Admin\CourseController::class, 'downloadTemplate'])->name('template');
         
-        // Assignment Routes (Instructors & Students)
+        // Assignment Routes
         Route::get('/{course}/assign', [App\Http\Controllers\Admin\CourseController::class, 'assignForm'])->name('assign');
         Route::post('/{course}/assign', [App\Http\Controllers\Admin\CourseController::class, 'assign'])->name('assign.store');
         
@@ -209,7 +226,7 @@ Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function ()
         Route::post('/{course}/enroll-students', [App\Http\Controllers\Admin\CourseController::class, 'enrollStudents'])->name('enroll-students');
         Route::delete('/{course}/students/{student}', [App\Http\Controllers\Admin\CourseController::class, 'removeStudent'])->name('remove-student');
         
-        // Legacy instructor assignment (keep for backward compatibility)
+        // Legacy instructor assignment
         Route::get('/{course}/assign-instructors', [App\Http\Controllers\Admin\CourseController::class, 'assignInstructors'])->name('assign-instructors');
         Route::put('/{course}/update-instructors', [App\Http\Controllers\Admin\CourseController::class, 'updateInstructors'])->name('update-instructors');
         
@@ -228,12 +245,41 @@ Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function ()
         Route::get('/offering-summary', [App\Http\Controllers\Admin\CourseOfferingController::class, 'getOfferingSummary'])->name('offering-summary');
     });
     
-    // Statistics/Analytics (Optional)
+    // ========== DOCUMENT SUBMISSION MANAGEMENT (ADMIN) ==========
+    Route::prefix('document-submissions')->name('document-submissions.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\DocumentSubmissionController::class, 'index'])->name('index');
+        Route::get('/{submission}', [App\Http\Controllers\Admin\DocumentSubmissionController::class, 'show'])->name('show');
+        Route::get('/{submission}/download', [App\Http\Controllers\Admin\DocumentSubmissionController::class, 'download'])->name('download');
+        Route::post('/{submission}/approve', [App\Http\Controllers\Admin\DocumentSubmissionController::class, 'approve'])->name('approve');
+        Route::post('/{submission}/reject', [App\Http\Controllers\Admin\DocumentSubmissionController::class, 'reject'])->name('reject');
+        Route::delete('/{submission}', [App\Http\Controllers\Admin\DocumentSubmissionController::class, 'destroy'])->name('destroy');
+        Route::get('/export/csv', [App\Http\Controllers\Admin\DocumentSubmissionController::class, 'export'])->name('export');
+    });
+    
+    // ========== PROGRAM MANAGEMENT ROUTES (ADMIN) ==========
+    Route::resource('programs', App\Http\Controllers\Admin\ProgramController::class);
+    
+    // Program Requirements Routes
+    Route::post('/requirements', [App\Http\Controllers\Admin\ProgramController::class, 'storeRequirement'])->name('programs.requirements.store');
+    Route::put('/requirements/{id}', [App\Http\Controllers\Admin\ProgramController::class, 'updateRequirement'])->name('programs.requirements.update');
+    Route::delete('/requirements/{id}', [App\Http\Controllers\Admin\ProgramController::class, 'destroyRequirement'])->name('programs.requirements.destroy');
+    
+    // Admission Requirements Routes
+    Route::post('/admission', [App\Http\Controllers\Admin\ProgramController::class, 'storeAdmission'])->name('programs.admission.store');
+    Route::put('/admission/{id}', [App\Http\Controllers\Admin\ProgramController::class, 'updateAdmission'])->name('programs.admission.update');
+    Route::delete('/admission/{id}', [App\Http\Controllers\Admin\ProgramController::class, 'destroyAdmission'])->name('programs.admission.destroy');
+    
+    // Graduation Requirements Routes
+    Route::post('/graduation', [App\Http\Controllers\Admin\ProgramController::class, 'storeGraduation'])->name('programs.graduation.store');
+    Route::put('/graduation/{id}', [App\Http\Controllers\Admin\ProgramController::class, 'updateGraduation'])->name('programs.graduation.update');
+    Route::delete('/graduation/{id}', [App\Http\Controllers\Admin\ProgramController::class, 'destroyGraduation'])->name('programs.graduation.destroy');
+    
+    // Statistics/Analytics
     Route::get('/statistics', function () {
         return view('admin.statistics');
     })->name('statistics');
     
-    // Settings (Optional)
+    // Settings
     Route::get('/settings', function () {
         return view('admin.settings');
     })->name('settings');
@@ -311,11 +357,19 @@ Route::middleware(['staff'])->prefix('staff')->name('staff.')->group(function ()
     // ========== COMPLAINTS (STAFF VIEW) ==========
     Route::get('/complaints', [App\Http\Controllers\Staff\ComplaintController::class, 'index'])->name('complaints.index');
     Route::get('/complaints/{complaint}', [App\Http\Controllers\Staff\ComplaintController::class, 'show'])->name('complaints.show');
+    
+    // ========== DOCUMENT SUBMISSION REVIEW (STAFF) ==========
+    Route::prefix('document-submissions')->name('document-submissions.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Staff\DocumentSubmissionController::class, 'index'])->name('index');
+        Route::get('/{submission}', [App\Http\Controllers\Staff\DocumentSubmissionController::class, 'show'])->name('show');
+        Route::get('/{submission}/download', [App\Http\Controllers\Staff\DocumentSubmissionController::class, 'download'])->name('download');
+        Route::post('/{submission}/review', [App\Http\Controllers\Staff\DocumentSubmissionController::class, 'review'])->name('review');
+    });
 });
 
 /*
 |--------------------------------------------------------------------------
-| Student Routes (Protected)
+| Student Routes (Protected) - WITH DOCUMENT SUBMISSION SYSTEM
 |--------------------------------------------------------------------------
 */
 
@@ -355,6 +409,25 @@ Route::middleware(['auth', 'student'])->prefix('student')->name('student.')->gro
     // Student Complaints
     Route::get('/my-complaints', [App\Http\Controllers\StudentController::class, 'myComplaints'])->name('complaints');
     Route::get('/complaints/{complaint}', [App\Http\Controllers\StudentController::class, 'complaintDetail'])->name('complaints.show');
+    
+    // ========== DOCUMENT SUBMISSION SYSTEM (STUDENT) ==========
+    // Primary routes
+    Route::prefix('documents')->name('submission.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Student\DocumentSubmissionController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Student\DocumentSubmissionController::class, 'create'])->name('create');
+        Route::post('/store', [App\Http\Controllers\Student\DocumentSubmissionController::class, 'store'])->name('store');
+        Route::get('/{id}', [App\Http\Controllers\Student\DocumentSubmissionController::class, 'show'])->name('show');
+        Route::get('/{id}/download', [App\Http\Controllers\Student\DocumentSubmissionController::class, 'download'])->name('download');
+        Route::delete('/{id}', [App\Http\Controllers\Student\DocumentSubmissionController::class, 'destroy'])->name('destroy');
+    });
+    
+    // Alias routes for convenience (these work alongside the primary routes)
+    Route::get('/submissions', [App\Http\Controllers\Student\DocumentSubmissionController::class, 'index'])->name('submissions.index');
+    Route::get('/submission/create', [App\Http\Controllers\Student\DocumentSubmissionController::class, 'create'])->name('submission.create');
+    Route::post('/submission', [App\Http\Controllers\Student\DocumentSubmissionController::class, 'store'])->name('submission.store');
+    Route::get('/submission/{id}', [App\Http\Controllers\Student\DocumentSubmissionController::class, 'show'])->name('submission.show');
+    Route::get('/submission/{id}/download', [App\Http\Controllers\Student\DocumentSubmissionController::class, 'download'])->name('submission.download');
+    Route::delete('/submission/{id}', [App\Http\Controllers\Student\DocumentSubmissionController::class, 'destroy'])->name('submission.destroy');
 });
 
 /*
@@ -405,7 +478,6 @@ Route::get('/all-assignments', [App\Http\Controllers\StudentController::class, '
 |--------------------------------------------------------------------------
 */
 
-// This route is for the staff management page accessible to admin
 Route::middleware(['admin'])->get('/staff-admin', [StaffController::class, 'admin'])->name('staff.admin');
 
 /*

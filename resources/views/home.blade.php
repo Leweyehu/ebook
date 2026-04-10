@@ -10,12 +10,12 @@
         <div style="position: absolute; top: -50%; left: -50%; right: -50%; bottom: -50%; background: radial-gradient(circle at 30% 50%, rgba(22, 106, 175, 0.1) 0%, transparent 50%); animation: rotate 20s linear infinite;"></div>
         
         <div style="position: relative; z-index: 2; max-width: 900px; margin: 0 auto; padding: 0 20px;">
-            <h1 style="font-size: 4rem; margin-bottom: 1.2rem; font-weight: 700; text-shadow: 2px 2px 4px rgba(9, 79, 132, 0.5); letter-spacing: -0.5px; color: #003366;">
+            <p style="font-size: 1.8rem; font-weight: 400; letter-spacing: 0.5px; color: #00509e; text-shadow: 1px 1px 2px rgba(255,255,255,0.3); margin-bottom: 0.5rem; text-transform: uppercase;">
                 Mekdela Amba University
-            </h1>
-            <p style="font-size: 1.8rem; font-weight: 500; letter-spacing: 1px; color: #00509e; text-shadow: 1px 1px 2px rgba(255,255,255,0.3); margin: 0 auto 1rem;">
-                Welcome to Computer Science
             </p>
+            <h1 style="font-size: 3.2rem; font-weight: 700; margin-bottom: 0.1rem; text-shadow: 2px 2px 4px rgba(9, 79, 132, 0.5); letter-spacing: -0.5px; color: #003366; white-space: nowrap;">
+                Welcome to Computer Science
+            </h1>
             <p style="font-size: 1.2rem; max-width: 800px; margin: 0 auto 2rem; font-weight: 400; letter-spacing: 0.5px; color: #00509e; text-shadow: 1px 1px 2px rgba(255,255,255,0.3);">
                 Innovating the Future through Technology and Research
             </p>
@@ -110,7 +110,7 @@
                                 </li>
                                 <li style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 10px;">
                                     <i class="fas fa-check-circle" style="color: #FFD700;"></i>
-                                    <span>Node.js, Python, Go</span>
+                                    <span>Node.js, Python, Laravel</span>
                                 </li>
                                 <li style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 10px;">
                                     <i class="fas fa-check-circle" style="color: #FFD700;"></i>
@@ -147,9 +147,7 @@
                     
                     <div style="background: #f8f9fa; padding: 1rem; border-radius: 10px; margin-top: 1rem;">
                         <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 1rem;">
-                            <span><i class="fas fa-tasks" style="color: #FFD700;"></i> Agile/Scrum</span>
                             <span><i class="fas fa-briefcase" style="color: #FFD700;"></i> Industry Internship</span>
-                            <span><i class="fas fa-certificate" style="color: #FFD700;"></i> 4 Years</span>
                         </div>
                     </div>
                 </div>
@@ -538,6 +536,7 @@
         
         .hero-section h1 {
             font-size: 2.5rem !important;
+            white-space: normal !important;
         }
         
         .hero-section p {

@@ -36,6 +36,16 @@ return [
             'serve' => true,
             'throw' => false,
             'report' => false,
+            'permissions' => [
+                'file' => [
+                    'public' => 0644,
+                    'private' => 0600,
+                ],
+                'dir' => [
+                    'public' => 0755,
+                    'private' => 0700,
+                ],
+            ],
         ],
 
         'public' => [
@@ -45,6 +55,50 @@ return [
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
+            'permissions' => [
+                'file' => [
+                    'public' => 0644,
+                ],
+                'dir' => [
+                    'public' => 0755,
+                ],
+            ],
+        ],
+
+        // ========== DOCUMENT SUBMISSION STORAGE DISK ==========
+        // Dedicated disk for internship documents with larger file support
+        'documents' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/documents'),
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage/documents',
+            'visibility' => 'public',
+            'throw' => true, // Throw exceptions for debugging
+            'report' => true,
+            'permissions' => [
+                'file' => [
+                    'public' => 0644,
+                ],
+                'dir' => [
+                    'public' => 0755,
+                ],
+            ],
+        ],
+
+        // Private documents disk (for sensitive files that shouldn't be publicly accessible)
+        'private_documents' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/documents'),
+            'visibility' => 'private',
+            'throw' => true,
+            'report' => true,
+            'permissions' => [
+                'file' => [
+                    'private' => 0600,
+                ],
+                'dir' => [
+                    'private' => 0700,
+                ],
+            ],
         ],
 
         's3' => [

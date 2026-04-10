@@ -1,6 +1,8 @@
-@extends('layouts.app')
+{{-- news/index.blade.php --}}
+@extends('layouts.admin')  {{-- CHANGED FROM layouts.app TO layouts.admin --}}
 
 @section('title', 'Manage News')
+@section('page-title', 'Manage News & Events')
 
 @section('content')
 <div class="page-header">
@@ -10,19 +12,9 @@
 </div>
 
 <div class="container">
-    <!-- Include Admin Header -->
-    @include('admin.partials.admin-header')
-
-    <!-- Back to Dashboard Button -->
-    <div style="margin-bottom: 1.5rem;">
-        <a href="{{ route('admin.dashboard') }}" style="display: inline-flex; align-items: center; gap: 0.5rem; background: #6c757d; color: white; padding: 0.5rem 1.5rem; border-radius: 5px; text-decoration: none; font-weight: 600;">
-            <i class="fas fa-arrow-left"></i> Back to Dashboard
-        </a>
-    </div>
-
     <!-- Page Header with Add Button -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-        <h2 style="color: #1a2b3c;">News Articles</h2>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <h2 style="color: #1a2b3c; margin: 0;">News Articles</h2>
         <a href="{{ route('admin.news.create') }}" style="background: #28a745; color: white; padding: 0.75rem 1.5rem; border-radius: 5px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem;">
             <i class="fas fa-plus"></i> Create News
         </a>
@@ -30,7 +22,7 @@
 
     <!-- Category Filter -->
     <div style="margin-bottom: 2rem;">
-        <select style="padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px; width: 200px;">
+        <select id="categoryFilter" style="padding: 0.75rem; border: 1px solid #ddd; border-radius: 5px; width: 200px;">
             <option value="">All Categories</option>
             <option value="news">News</option>
             <option value="event">Events</option>
@@ -60,11 +52,11 @@
                     </span>
                 </div>
                 
-                <h3 style="margin-bottom: 0.5rem;">{{ $news->title }}</h3>
+                <h3 style="margin-bottom: 0.5rem; font-size: 1.2rem;">{{ $news->title }}</h3>
                 <p style="color: #6c757d; font-size: 0.9rem; margin-bottom: 1rem;">
                     {{ \Carbon\Carbon::parse($news->created_at)->format('M d, Y') }} • {{ $news->views }} views
                 </p>
-                <p style="color: #6c757d; margin-bottom: 1.5rem;">{{ Str::limit($news->content, 100) }}</p>
+                <p style="color: #6c757d; margin-bottom: 1.5rem; line-height: 1.5;">{{ Str::limit($news->content, 100) }}</p>
                 
                 <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
                     <a href="{{ route('admin.news.edit', $news) }}" style="background: #ffc107; color: #1a2b3c; padding: 0.5rem 1rem; border-radius: 5px; text-decoration: none; font-size: 0.9rem;">
@@ -91,4 +83,20 @@
         @endforelse
     </div>
 </div>
+
+<script>
+    // Simple category filter
+    document.getElementById('categoryFilter').addEventListener('change', function() {
+        const selectedCategory = this.value;
+        const newsCards = document.querySelectorAll('.news-card');
+        
+        newsCards.forEach(card => {
+            if (selectedCategory === '' || card.dataset.category === selectedCategory) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
+</script>
 @endsection

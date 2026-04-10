@@ -182,17 +182,17 @@
     <section style="margin-bottom: 4rem;">
         <h2 style="color: #0a2342; margin-bottom: 2rem; text-align: center; font-size: 2.2rem;">Student Directory</h2>
         <p style="text-align: center; color: #4a5568; max-width: 800px; margin: 0 auto 3rem;">
-            @if($allStudents->total() > 0)
-                Showing {{ $allStudents->firstItem() }} to {{ $allStudents->lastItem() }} of {{ $allStudents->total() }} students
+            @if($students->total() > 0)
+                Showing {{ $students->firstItem() }} to {{ $students->lastItem() }} of {{ $students->total() }} students
             @else
                 No students found
             @endif
         </p>
         
-        @if($allStudents->count() > 0)
+        @if($students->count() > 0)
         <!-- Card Grid View -->
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2rem; margin-bottom: 3rem;">
-            @foreach($allStudents as $student)
+            @foreach($students as $student)
             <div style="background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 25px rgba(10,35,66,0.1); transition: transform 0.3s ease;">
                 <!-- Student Card Header -->
                 <div style="background: linear-gradient(135deg, #0a2342 0%, #1c3a5f 100%); padding: 2rem 1.5rem; text-align: center;">
@@ -249,7 +249,7 @@
         </div>
 
         <!-- Pagination -->
-        @if($allStudents->hasPages())
+        @if($students->hasPages())
         <div style="margin-top: 2rem; display: flex; justify-content: center;">
             <style>
                 .pagination {
@@ -283,7 +283,7 @@
                     border-color: #0a2342;
                 }
             </style>
-            {{ $allStudents->appends(request()->query())->links() }}
+            {{ $students->appends(request()->query())->links() }}
         </div>
         @endif
         
