@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "efb2dfe154bb07622cf6fcdd0a44abdb",
+    "content-hash": "1cb4038e7bc16e91ebcb1ef45bd3cd67",
     "packages": [
         {
             "name": "brick/math",
@@ -2926,85 +2926,6 @@
             "time": "2026-01-02T08:56:05+00:00"
         },
         {
-            "name": "muba00/laravel-live-chat",
-            "version": "v0.0.2",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/muba00/laravel-live-chat.git",
-                "reference": "c66460779350855379fe286fbe36ff1f4804cf24"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/muba00/laravel-live-chat/zipball/c66460779350855379fe286fbe36ff1f4804cf24",
-                "reference": "c66460779350855379fe286fbe36ff1f4804cf24",
-                "shasum": ""
-            },
-            "require": {
-                "illuminate/contracts": "^11.0||^12.0",
-                "php": "^8.3",
-                "spatie/laravel-package-tools": "^1.16"
-            },
-            "require-dev": {
-                "larastan/larastan": "^3.0",
-                "laravel/pint": "^1.14",
-                "nunomaduro/collision": "^8.8",
-                "orchestra/testbench": "^10.0.0||^9.0.0",
-                "pestphp/pest": "^4.0",
-                "pestphp/pest-plugin-arch": "^4.0",
-                "pestphp/pest-plugin-laravel": "^4.0",
-                "phpstan/extension-installer": "^1.4",
-                "phpstan/phpstan-deprecation-rules": "^2.0",
-                "phpstan/phpstan-phpunit": "^2.0",
-                "spatie/laravel-ray": "^1.35"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "aliases": {
-                        "LaravelLiveChat": "muba00\\LaravelLiveChat\\Facades\\LaravelLiveChat"
-                    },
-                    "providers": [
-                        "muba00\\LaravelLiveChat\\LaravelLiveChatServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "muba00\\LaravelLiveChat\\": "src/",
-                    "muba00\\LaravelLiveChat\\Database\\Factories\\": "database/factories/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Mubariz Hajimuradov",
-                    "email": "mubarizhajimuradov@gmail.com"
-                }
-            ],
-            "description": "A Laravel package that adds real time live chat functionality to your application.",
-            "homepage": "https://github.com/muba00/laravel-live-chat",
-            "keywords": [
-                "Mubariz Hajimuradov",
-                "laravel",
-                "laravel-live-chat"
-            ],
-            "support": {
-                "issues": "https://github.com/muba00/laravel-live-chat/issues",
-                "source": "https://github.com/muba00/laravel-live-chat/tree/v0.0.2"
-            },
-            "funding": [
-                {
-                    "url": "https://github.com/muba00",
-                    "type": "github"
-                }
-            ],
-            "abandoned": true,
-            "time": "2025-10-17T15:51:16+00:00"
-        },
-        {
             "name": "nesbot/carbon",
             "version": "3.11.4",
             "source": {
@@ -5029,67 +4950,6 @@
                 }
             ],
             "time": "2024-06-11T12:45:25+00:00"
-        },
-        {
-            "name": "spatie/laravel-package-tools",
-            "version": "1.93.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/spatie/laravel-package-tools.git",
-                "reference": "0d097bce95b2bf6802fb1d83e1e753b0f5a948e7"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/spatie/laravel-package-tools/zipball/0d097bce95b2bf6802fb1d83e1e753b0f5a948e7",
-                "reference": "0d097bce95b2bf6802fb1d83e1e753b0f5a948e7",
-                "shasum": ""
-            },
-            "require": {
-                "illuminate/contracts": "^10.0|^11.0|^12.0|^13.0",
-                "php": "^8.1"
-            },
-            "require-dev": {
-                "mockery/mockery": "^1.5",
-                "orchestra/testbench": "^8.0|^9.2|^10.0|^11.0",
-                "pestphp/pest": "^2.1|^3.1|^4.0",
-                "phpunit/php-code-coverage": "^10.0|^11.0|^12.0",
-                "phpunit/phpunit": "^10.5|^11.5|^12.5",
-                "spatie/pest-plugin-test-time": "^2.2|^3.0"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Spatie\\LaravelPackageTools\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Freek Van der Herten",
-                    "email": "freek@spatie.be",
-                    "role": "Developer"
-                }
-            ],
-            "description": "Tools for creating Laravel packages",
-            "homepage": "https://github.com/spatie/laravel-package-tools",
-            "keywords": [
-                "laravel-package-tools",
-                "spatie"
-            ],
-            "support": {
-                "issues": "https://github.com/spatie/laravel-package-tools/issues",
-                "source": "https://github.com/spatie/laravel-package-tools/tree/1.93.0"
-            },
-            "funding": [
-                {
-                    "url": "https://github.com/spatie",
-                    "type": "github"
-                }
-            ],
-            "time": "2026-02-21T12:49:54+00:00"
         },
         {
             "name": "symfony/clock",
