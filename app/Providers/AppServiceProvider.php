@@ -3,24 +3,20 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Http\Request;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
         //
     }
 
-    /**
-     * Bootstrap any application services.
-     */
-   public function boot(): void
-{
-    if (app()->environment('production')) {
-        URL::forceScheme('https');
+    public function boot(Request $request): void
+    {
+        if ($request->server->get('HTTP_X_FORWARDED_PROTO') === 'https' || 
+            $request->server->get('HTTP_CF_VISITOR') === '{"scheme":"https"}') {
+            $this->app['url']->forceScheme('https');
+        }
     }
-}
 }
