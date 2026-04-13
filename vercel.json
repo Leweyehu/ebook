@@ -1,9 +1,5 @@
 {
     "version": 2,
-    "regions": ["iad1"],
-    "installCommand": "",
-    "buildCommand": "",
-    "outputDirectory": "public",
     "functions": {
         "api/index.php": {
             "runtime": "vercel-php@0.7.3"
@@ -11,28 +7,15 @@
     },
     "routes": [
         {
-            "src": "/build/(.*)",
-            "dest": "/public/build/$1"
-        },
-        {
-            "src": "/images/(.*)",
-            "dest": "/public/images/$1"
-        },
-        {
-            "src": "/uploads/(.*)",
-            "dest": "/public/uploads/$1"
-        },
-        {
-            "src": "/storage/(.*)",
-            "dest": "/public/storage/$1"
-        },
-        {
             "src": "/(.*)",
             "dest": "/api/index.php"
         }
     ],
     "env": {
         "APP_ENV": "production",
-        "APP_DEBUG": "false"
+        "APP_DEBUG": "false",
+        "CACHE_DRIVER": "array",
+        "SESSION_DRIVER": "array",
+        "LOG_CHANNEL": "null"
     }
 }
