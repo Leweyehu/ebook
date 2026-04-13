@@ -1,39 +1,51 @@
 <?php
 
-// Set base path for Laravel
-$basePath = __DIR__ . '/../';
+// Force all paths to use /tmp (Vercel's writable directory)
+$tmpPath = '/tmp/laravel';
 
-// Use Vercel's writable /tmp directory
-$tmpPath = '/tmp/laravel-storage';
-
-// Create storage directories in /tmp
+// Create all necessary directories in /tmp
 $directories = [
     $tmpPath,
-    $tmpPath . '/logs',
-    $tmpPath . '/framework',
-    $tmpPath . '/framework/cache',
-    $tmpPath . '/framework/sessions',
-    $tmpPath . '/framework/views'
+    $tmpPath . '/storage',
+    $tmpPath . '/storage/framework',
+    $tmpPath . '/storage/framework/cache',
+    $tmpPath . '/storage/framework/sessions',
+    $tmpPath . '/storage/framework/views',
+    $tmpPath . '/storage/logs',
+    $tmpPath . '/bootstrap',
+    $tmpPath . '/bootstrap/cache'
 ];
 
 foreach ($directories as $dir) {
-    if (!file_exists($dir)) {
+    if (!is_dir($dir)) {
         mkdir($dir, 0777, true);
     }
 }
 
-// Override storage path before Laravel boots
-putenv("APP_STORAGE_PATH={$tmpPath}");
-putenv("LARAVEL_STORAGE_PATH={$tmpPath}");
+// Set environment variables for storage paths
+putenv("APP_STORAGE_PATH={$tmpPath}/storage");
+putenv("LARAVEL_STORAGE_PATH={$tmpPath}/storage");
 
-// Load Composer autoloader
+// Define constants for Laravel
+if (!defined('LARAVEL_STORAGE_PATH')) {
+    define('LARAVEL_STORAGE_PATH', $tmpPath . '/storage');
+}
+
+// Load Composer
+$basePath = __DIR__ . '/../';
 require $basePath . 'vendor/autoload.php';
 
-// Bootstrap Laravel
+// Create app instance
 $app = require_once $basePath . 'bootstrap/app.php';
 
-// Force the storage path after bootstrapping
-$app->useStoragePath($tmpPath);
+// Force override storage path
+$app->useStoragePath($tmpPath . '/storage');
+
+// Ensure log directory is writable
+$logFile = $tmpPath . '/storage/logs/laravel.log';
+if (!file_exists($logFile)) {
+    file_put_contents($logFile, '');
+}
 
 // Handle the request
 try {
@@ -47,5 +59,5 @@ try {
 } catch (Exception $e) {
     http_response_code(500);
     echo "Application Error: " . $e->getMessage();
-    error_log('Laravel Vercel Error: ' . $e->getMessage());
+    error_log('Laravel Error: ' . $e->getMessage());
 }
