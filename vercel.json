@@ -1,11 +1,13 @@
 {
     "version": 2,
     "regions": ["iad1"],
-    "buildCommand": "npm run build || echo 'No build script'",
+    "buildCommand": "php artisan config:cache && php artisan route:cache && php artisan view:cache",
+    "installCommand": "composer install --no-dev --optimize-autoloader",
     "outputDirectory": "public",
     "functions": {
         "api/index.php": {
-            "runtime": "vercel-php@0.7.3"
+            "runtime": "vercel-php@0.7.3",
+            "maxDuration": 10
         }
     },
     "routes": [
@@ -38,11 +40,20 @@
             "dest": "/public/favicon.ico"
         },
         {
+            "src": "/robots.txt",
+            "dest": "/public/robots.txt"
+        },
+        {
+            "src": "/.well-known/(.*)",
+            "dest": "/public/.well-known/$1"
+        },
+        {
             "src": "/(.*)",
             "dest": "/api/index.php"
         }
     ],
     "env": {
+        "APP_NAME": "Mekdela Amba University CS Dept",
         "APP_ENV": "production",
         "APP_DEBUG": "false",
         "APP_CONFIG_CACHE": "/tmp/config.php",
@@ -54,5 +65,10 @@
         "SESSION_DRIVER": "cookie",
         "LOG_CHANNEL": "stderr",
         "VIEW_COMPILED_PATH": "/tmp"
+    },
+    "git": {
+        "deploymentEnabled": {
+            "main": true
+        }
     }
 }
