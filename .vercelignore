@@ -1,0 +1,15 @@
+/vendor
+/node_modules
+/.env
+/.git
+/.github
+/tests
+/storage/logs
+/.idea
+/.vscode
+*.md
+*.sql
+*.sqlite
+.gitignore
+.env.*
+phpunit.xml
