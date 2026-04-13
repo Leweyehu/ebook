@@ -1,6 +1,8 @@
 {
     "version": 2,
     "regions": ["iad1"],
+    "buildCommand": "npm run build || echo 'No build script'",
+    "outputDirectory": "public",
     "functions": {
         "api/index.php": {
             "runtime": "vercel-php@0.7.3"
